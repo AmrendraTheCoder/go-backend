@@ -35,7 +35,7 @@ Welcome to the Manufacturing Operations Management System for Ganpathi Overseas 
 
 - [**Troubleshooting Guide**](14-troubleshooting.md) - Common issues and solutions
 - [**FAQ**](15-faq.md) - Frequently asked questions
-- [**Maintenance Guide**](16-maintenance.md) - Keeping the system running smoothly
+- [**Maintenance Guide**](16-maintenance-guide.md) - Keeping the system running smoothly
 
 ## 🎯 Quick Navigation
 

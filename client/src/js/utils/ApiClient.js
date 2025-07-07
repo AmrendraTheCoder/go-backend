@@ -17,7 +17,7 @@ export class ApiClient {
     const protocol = window.location.protocol;
 
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return `${protocol}//localhost:5000/api`;
+      return `${protocol}//localhost:5002/api`;
     } else {
       // Production - adjust as needed
       return `/api`;
