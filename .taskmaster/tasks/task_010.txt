@@ -1,0 +1,37 @@
+# Task ID: 10
+# Title: Pricing Management System
+# Status: pending
+# Dependencies: 5 (Not found), 6 (Not found)
+# Priority: medium
+# Description: Implement dynamic pricing rules, cost calculations, and profitability analysis
+# Details:
+Create pricing engine with material cost integration, labor time estimation, overhead calculations, cost center allocation, and detailed profitability reporting per job.
+
+# Test Strategy:
+Test pricing calculations, cost tracking accuracy, profitability analysis, and pricing rule modifications
+
+# Subtasks:
+## 10.1. Pricing Rules Engine [pending]
+### Dependencies: None
+### Description: Create admin-configurable pricing rules for materials and services
+### Details:
+
+
+## 10.2. Cost Calculation APIs [pending]
+### Dependencies: 10.1
+### Description: Auto-calculate rate per unit, plate price, printing cost, UV coating, baking
+### Details:
+
+
+## 10.3. Customer Balance Management [pending]
+### Dependencies: 10.2
+### Description: Update customer balance automatically on job completion
+### Details:
+
+
+## 10.4. Profitability Analysis [pending]
+### Dependencies: 10.2, 10.3
+### Description: Generate cost analysis and profit margin reports per job
+### Details:
+
+

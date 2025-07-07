@@ -1,0 +1,43 @@
+# Task ID: 7
+# Title: Admin Web Portal Frontend
+# Status: pending
+# Dependencies: 5 (Not found), 6 (Not found)
+# Priority: medium
+# Description: Build React.js admin dashboard with job management, pricing control, and user management
+# Details:
+Create responsive React.js dashboard with job queue management, approval workflows, pricing management, user administration, real-time status monitoring, and comprehensive reporting interface.
+
+# Test Strategy:
+Test all admin functions, responsive design, real-time updates, and user interface usability
+
+# Subtasks:
+## 7.1. React App Setup [pending]
+### Dependencies: None
+### Description: Initialize React app with routing, state management, UI framework
+### Details:
+
+
+## 7.2. Job Management Dashboard [pending]
+### Dependencies: 7.1
+### Description: Create job queue, approval/rejection interface, pricing controls
+### Details:
+
+
+## 7.3. Customer Management Interface [pending]
+### Dependencies: 7.1
+### Description: Add/edit customers, view customer history and balances
+### Details:
+
+
+## 7.4. Inventory Management Dashboard [pending]
+### Dependencies: 7.1
+### Description: Stock levels, alerts, reorder management interface
+### Details:
+
+
+## 7.5. Real-time Updates Integration [pending]
+### Dependencies: 7.2, 7.3, 7.4
+### Description: Socket.io client for live updates across admin panels
+### Details:
+
+
