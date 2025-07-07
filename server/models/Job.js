@@ -1,99 +1,274 @@
 const mongoose = require("mongoose");
 
-const progressSchema = new mongoose.Schema(
+// Progress tracking schema for machine operators
+const progressUpdateSchema = new mongoose.Schema(
   {
-    timestamp: { type: Date, default: Date.now },
-    status: { type: String, required: true },
-    operatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    notes: String,
-    photos: [String],
-    machineParameters: {
-      temperature: Number,
-      pressure: Number,
-      speed: Number,
-      customParams: mongoose.Schema.Types.Mixed,
-    },
-  },
-  { _id: false }
-);
-
-const materialSchema = new mongoose.Schema(
-  {
-    itemId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Inventory",
+    stage: {
+      type: String,
+      enum: [
+        "preparation",
+        "printing",
+        "finishing",
+        "quality_check",
+        "packaging",
+      ],
       required: true,
     },
-    itemName: String,
-    quantityRequired: { type: Number, required: true },
-    quantityUsed: { type: Number, default: 0 },
-    unit: { type: String, default: "units" },
+    status: {
+      type: String,
+      enum: ["pending", "in_progress", "completed", "on_hold"],
+      default: "pending",
+    },
+    startTime: Date,
+    endTime: Date,
+    notes: String,
+    photos: [String], // URLs to uploaded photos
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    machineId: String,
+    qualityMetrics: {
+      defectCount: { type: Number, default: 0 },
+      qualityScore: { type: Number, min: 0, max: 100 },
+      notes: String,
+    },
+  },
+  { timestamps: true }
+);
+
+// Material usage tracking
+const materialUsageSchema = new mongoose.Schema(
+  {
+    materialType: { type: String, required: true },
+    materialId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Inventory",
+    },
+    quantityUsed: { type: Number, required: true },
+    quantityWasted: { type: Number, default: 0 },
+    unit: { type: String, required: true },
+    cost: { type: Number, required: true },
+    usageDate: { type: Date, default: Date.now },
+    notes: String,
   },
   { _id: false }
 );
 
 const jobSchema = new mongoose.Schema(
   {
+    // Auto-generated job ID
     jobId: {
       type: String,
-      required: true,
       unique: true,
       index: true,
     },
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 200,
+
+    // SECTION 1: BASIC INFO
+    basicInfo: {
+      jobName: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 200,
+      },
+      jobDate: {
+        type: Date,
+        required: true,
+        default: Date.now,
+      },
+      partyName: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Customer",
+        required: true,
+        index: true,
+      },
     },
-    description: {
-      type: String,
-      required: true,
-      maxlength: 2000,
+
+    // SECTION 2: JOB DETAILS
+    jobDetails: {
+      jobType: {
+        type: String,
+        enum: ["single-single", "front-back"],
+        required: true,
+      },
+      plates: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+      paperSize: {
+        name: { type: String, required: true }, // e.g., "A4", "Letter"
+        dimensions: {
+          width: { type: Number, required: true }, // in inches
+          height: { type: Number, required: true }, // in inches
+        },
+        squareInches: { type: Number, required: true }, // auto-calculated
+      },
+      paperSheets: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+      impressions: {
+        type: Number,
+        required: true,
+        min: 1,
+        // Auto-calculated: Single-single = 1 × Paper Sheets, Front-back = 2 × Paper Sheets
+        // But can be manually overridden
+      },
+      paperType: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PaperType",
+        required: true,
+      },
+      gsm: {
+        type: Number,
+        required: true,
+        min: 70,
+        max: 330,
+      },
+      paperProvidedByParty: {
+        type: Boolean,
+        default: false,
+      },
     },
+
+    // SECTION 3: COST CALCULATION AND MACHINE ASSIGNMENT
+    costCalculation: {
+      assignedMachine: {
+        type: String,
+        enum: ["machine_1", "machine_2"],
+        required: true,
+        index: true,
+      },
+      ratePerUnit: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      platePricePerPlate: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      printingCost: {
+        type: Number,
+        min: 0,
+        // Calculated: Rate × Impressions + Plate Price × Plates
+      },
+      platePriceCost: {
+        type: Number,
+        min: 0,
+        // Calculated: Plate Price × Plates
+      },
+      uvCoatingCost: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      bakingCost: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      totalCost: {
+        type: Number,
+        min: 0,
+        // Sum of all costs
+      },
+    },
+
+    // SECTION 4: JOB SHEET REVIEW (Meta information)
+    review: {
+      reviewed: {
+        type: Boolean,
+        default: false,
+      },
+      reviewedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      reviewDate: Date,
+      reviewNotes: String,
+    },
+
+    // Current status and workflow
     status: {
       type: String,
       enum: [
-        "pending",
+        "draft",
+        "pending_approval",
         "approved",
-        "in-progress",
+        "in_progress",
+        "on_hold",
         "completed",
+        "cancelled",
         "rejected",
-        "on-hold",
       ],
-      default: "pending",
+      default: "draft",
       index: true,
     },
+
+    // Priority and scheduling
     priority: {
       type: String,
       enum: ["low", "medium", "high", "urgent"],
       default: "medium",
       index: true,
     },
-    createdDate: {
-      type: Date,
-      default: Date.now,
-      index: true,
-    },
+
+    // Time tracking
+    estimatedDuration: { type: Number }, // in hours
+    actualDuration: { type: Number }, // in hours
     dueDate: Date,
-    completedDate: Date,
-    specifications: {
-      dimensions: String,
-      materials: String,
-      finishRequirements: String,
-      qualityStandards: String,
-      specialInstructions: String,
-      blueprintFiles: [String],
+    startDate: Date,
+    completionDate: Date,
+
+    // Material and resource requirements
+    materialRequirements: [materialUsageSchema],
+    toolsRequired: [String],
+    skillsRequired: [String],
+
+    // Assigned operators
+    assignedOperators: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    // Progress tracking
+    progressUpdates: [progressUpdateSchema],
+    currentProgress: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
     },
-    assignedMachine: {
-      type: String,
-      index: true,
+
+    // Quality and completion
+    qualityChecks: [
+      {
+        checkType: String,
+        result: { type: String, enum: ["pass", "fail", "rework"] },
+        notes: String,
+        checkedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        checkDate: { type: Date, default: Date.now },
+      },
+    ],
+
+    // AI insights and analytics
+    aiInsights: {
+      estimatedCompletionTime: Date,
+      riskFactors: [String],
+      optimizationSuggestions: [String],
+      bottleneckPredictions: [String],
+      efficiencyScore: { type: Number, min: 0, max: 100 },
     },
-    assignedOperator: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      index: true,
-    },
+
+    // Audit trail
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -103,37 +278,17 @@ const jobSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    pricingStatus: {
-      type: String,
-      enum: ["pending", "calculated", "approved", "rejected"],
-      default: "pending",
-    },
-    costBreakdown: {
-      materialCost: { type: Number, default: 0 },
-      laborCost: { type: Number, default: 0 },
-      overheadCost: { type: Number, default: 0 },
-      totalCost: { type: Number, default: 0 },
-    },
-    materials: [materialSchema],
-    progress: [progressSchema],
-    photos: [String],
-    aiInsights: [
+    rejectionReason: String,
+
+    // Notes and attachments
+    notes: String,
+    attachments: [String], // URLs to uploaded files
+
+    // Dependencies
+    dependencies: [
       {
-        type: { type: String },
-        insight: String,
-        confidence: Number,
-        generatedAt: { type: Date, default: Date.now },
-      },
-    ],
-    estimatedDuration: Number, // in hours
-    actualDuration: Number, // in hours
-    qualityChecks: [
-      {
-        checkType: String,
-        passed: Boolean,
-        notes: String,
-        checkedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        checkedAt: { type: Date, default: Date.now },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job",
       },
     ],
   },
@@ -146,29 +301,33 @@ const jobSchema = new mongoose.Schema(
 
 // Indexes for performance
 jobSchema.index({ status: 1, priority: 1, createdDate: -1 });
-jobSchema.index({ assignedMachine: 1, status: 1 });
-jobSchema.index({ createdDate: -1 });
+jobSchema.index({ "costCalculation.assignedMachine": 1, status: 1 });
+jobSchema.index({ "basicInfo.partyName": 1 });
+jobSchema.index({ "basicInfo.jobDate": -1 });
+jobSchema.index({ createdAt: -1 });
 jobSchema.index({ dueDate: 1 });
 
 // Virtual for progress percentage
 jobSchema.virtual("progressPercentage").get(function () {
   if (this.status === "completed") return 100;
-  if (this.status === "pending" || this.status === "rejected") return 0;
+  if (this.status === "draft" || this.status === "rejected") return 0;
 
   // Calculate based on progress entries
-  const progressSteps = this.progress.length;
+  const progressSteps = this.progressUpdates.length;
   if (progressSteps === 0) return 0;
 
-  // Simple calculation - can be made more sophisticated
+  // Simple calculation based on status
   switch (this.status) {
+    case "pending_approval":
+      return 5;
     case "approved":
       return 10;
-    case "in-progress":
-      return Math.min(50 + progressSteps * 10, 90);
-    case "on-hold":
-      return Math.min(30 + progressSteps * 5, 80);
+    case "in_progress":
+      return Math.min(20 + progressSteps * 15, 90);
+    case "on_hold":
+      return Math.min(30 + progressSteps * 10, 80);
     default:
-      return 0;
+      return this.currentProgress || 0;
   }
 });
 
@@ -199,6 +358,57 @@ jobSchema.pre("save", async function (next) {
   next();
 });
 
+// Pre-save middleware to auto-calculate costs and impressions
+jobSchema.pre("save", function (next) {
+  // Auto-calculate square inches
+  if (this.jobDetails.paperSize.dimensions) {
+    this.jobDetails.paperSize.squareInches =
+      this.jobDetails.paperSize.dimensions.width *
+      this.jobDetails.paperSize.dimensions.height;
+  }
+
+  // Auto-calculate impressions if not manually set
+  if (this.jobDetails.paperSheets && this.jobDetails.jobType) {
+    const baseImpressions =
+      this.jobDetails.jobType === "single-single"
+        ? this.jobDetails.paperSheets
+        : this.jobDetails.paperSheets * 2;
+
+    // Only auto-calculate if impressions is not already set or is 0
+    if (!this.jobDetails.impressions || this.jobDetails.impressions === 0) {
+      this.jobDetails.impressions = baseImpressions;
+    }
+  }
+
+  // Auto-calculate costs
+  if (this.costCalculation) {
+    // Calculate plate price cost
+    if (this.jobDetails.plates && this.costCalculation.platePricePerPlate) {
+      this.costCalculation.platePriceCost =
+        this.jobDetails.plates * this.costCalculation.platePricePerPlate;
+    }
+
+    // Calculate printing cost
+    if (
+      this.jobDetails.impressions &&
+      this.costCalculation.ratePerUnit &&
+      this.costCalculation.platePriceCost
+    ) {
+      this.costCalculation.printingCost =
+        this.jobDetails.impressions * this.costCalculation.ratePerUnit +
+        this.costCalculation.platePriceCost;
+    }
+
+    // Calculate total cost
+    this.costCalculation.totalCost =
+      (this.costCalculation.printingCost || 0) +
+      (this.costCalculation.uvCoatingCost || 0) +
+      (this.costCalculation.bakingCost || 0);
+  }
+
+  next();
+});
+
 // Static method to get jobs summary
 jobSchema.statics.getSummary = function () {
   return this.aggregate([
@@ -207,6 +417,7 @@ jobSchema.statics.getSummary = function () {
         _id: "$status",
         count: { $sum: 1 },
         avgDuration: { $avg: "$actualDuration" },
+        totalCost: { $sum: "$costCalculation.totalCost" },
       },
     },
   ]);
@@ -214,20 +425,33 @@ jobSchema.statics.getSummary = function () {
 
 // Instance method to update progress
 jobSchema.methods.addProgress = function (progressData) {
-  this.progress.push(progressData);
+  this.progressUpdates.push(progressData);
 
   // Auto-update status based on progress
   if (progressData.status === "completed") {
     this.status = "completed";
-    this.completedDate = new Date();
+    this.completionDate = new Date();
+    this.currentProgress = 100;
   } else if (
-    progressData.status === "in-progress" &&
+    progressData.status === "in_progress" &&
     this.status === "approved"
   ) {
-    this.status = "in-progress";
+    this.status = "in_progress";
   }
 
   return this.save();
+};
+
+// Instance method to calculate customer balance impact
+jobSchema.methods.updateCustomerBalance = function () {
+  // This will be implemented when Customer model is integrated
+  // Will automatically update customer balance when job is completed
+  if (this.status === "completed" && this.costCalculation.totalCost) {
+    // Update customer balance logic here
+    console.log(
+      `Job ${this.jobId} completed. Customer balance should be updated by ${this.costCalculation.totalCost}`
+    );
+  }
 };
 
 module.exports = mongoose.model("Job", jobSchema);

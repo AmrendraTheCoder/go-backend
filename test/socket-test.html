@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manufacturing Operations - Socket.io Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .status {
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      .status.connected {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .status.disconnected {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .event-log {
+        height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        background-color: #f8f9fa;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .event {
+        margin: 5px 0;
+        padding: 5px;
+        border-left: 3px solid #007bff;
+        background-color: white;
+      }
+      .event.error {
+        border-left-color: #dc3545;
+        background-color: #f8d7da;
+      }
+      .event.success {
+        border-left-color: #28a745;
+        background-color: #d4edda;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+      }
+      input,
+      select {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .room-info {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏭 Manufacturing Operations - Socket.io Test Client</h1>
+
+    <div class="container">
+      <h2>Connection Status</h2>
+      <div id="connectionStatus" class="status disconnected">Disconnected</div>
+      <div>
+        <input
+          type="text"
+          id="authToken"
+          placeholder="Enter JWT token (optional for testing)"
+          style="width: 300px"
+        />
+        <button id="connectBtn" onclick="connect()">Connect</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>
+          Disconnect
+        </button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="container">
+        <h2>User Info & Rooms</h2>
+        <div id="userInfo" class="room-info">Not connected</div>
+        <div>
+          <select id="roomSelect">
+            <option value="">Select room to join</option>
+            <option value="admin_room">Admin Room</option>
+            <option value="machine_1_room">Machine 1 Room</option>
+            <option value="machine_2_room">Machine 2 Room</option>
+            <option value="stock_room">Stock Room</option>
+            <option value="job_coordinators_room">Job Coordinators Room</option>
+            <option value="all_users_room">All Users Room</option>
+          </select>
+          <button onclick="joinRoom()">Join Room</button>
+          <button onclick="leaveRoom()">Leave Room</button>
+        </div>
+      </div>
+
+      <div class="container">
+        <h2>Test Actions</h2>
+        <div>
+          <button onclick="testJobCreated()">Test Job Created</button>
+          <button onclick="testInventoryUpdate()">Test Inventory Update</button>
+          <button onclick="testMachineStatus()">Test Machine Status</button>
+          <button onclick="testStockAlert()">Test Stock Alert</button>
+          <button onclick="pingServer()">Ping Server</button>
+        </div>
+        <div>
+          <input
+            type="text"
+            id="customJobId"
+            placeholder="Job ID"
+            style="width: 100px"
+          />
+          <button onclick="subscribeToJob()">Subscribe to Job</button>
+          <button onclick="unsubscribeFromJob()">Unsubscribe from Job</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2>Real-time Events Log</h2>
+      <button onclick="clearLog()">Clear Log</button>
+      <div id="eventLog" class="event-log"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      let socket = null;
+      let isConnected = false;
+
+      function logEvent(message, type = "info") {
+        const eventLog = document.getElementById("eventLog");
+        const timestamp = new Date().toLocaleTimeString();
+        const eventDiv = document.createElement("div");
+        eventDiv.className = `event ${type}`;
+        eventDiv.innerHTML = `[${timestamp}] ${message}`;
+        eventLog.appendChild(eventDiv);
+        eventLog.scrollTop = eventLog.scrollHeight;
+      }
+
+      function updateConnectionStatus(connected) {
+        isConnected = connected;
+        const statusEl = document.getElementById("connectionStatus");
+        const connectBtn = document.getElementById("connectBtn");
+        const disconnectBtn = document.getElementById("disconnectBtn");
+
+        if (connected) {
+          statusEl.textContent = "Connected";
+          statusEl.className = "status connected";
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+        } else {
+          statusEl.textContent = "Disconnected";
+          statusEl.className = "status disconnected";
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          document.getElementById("userInfo").textContent = "Not connected";
+        }
+      }
+
+      function connect() {
+        const token = document.getElementById("authToken").value;
+
+        const socketOptions = {
+          transports: ["websocket", "polling"],
+        };
+
+        if (token) {
+          socketOptions.auth = { token };
+        }
+
+        socket = io("http://localhost:5000", socketOptions);
+
+        socket.on("connect", () => {
+          logEvent("Connected to server", "success");
+          updateConnectionStatus(true);
+        });
+
+        socket.on("connection-confirmed", (data) => {
+          logEvent("Connection confirmed: " + JSON.stringify(data), "success");
+          const userInfo = document.getElementById("userInfo");
+          userInfo.innerHTML = `
+                    <strong>User ID:</strong> ${data.userId || "Anonymous"}<br>
+                    <strong>Role:</strong> ${data.role || "Guest"}<br>
+                    <strong>Available Rooms:</strong> ${
+                      data.availableRooms
+                        ? data.availableRooms.join(", ")
+                        : "None"
+                    }
+                `;
+        });
+
+        socket.on("disconnect", () => {
+          logEvent("Disconnected from server", "error");
+          updateConnectionStatus(false);
+        });
+
+        socket.on("connect_error", (error) => {
+          logEvent("Connection error: " + error.message, "error");
+          updateConnectionStatus(false);
+        });
+
+        // Room events
+        socket.on("room-joined", (data) => {
+          logEvent(`Joined room: ${data.room}`, "success");
+        });
+
+        socket.on("room-left", (data) => {
+          logEvent(`Left room: ${data.room}`, "info");
+        });
+
+        socket.on("room-join-denied", (data) => {
+          logEvent(
+            `Access denied to room: ${data.room} - ${data.reason}`,
+            "error"
+          );
+        });
+
+        // Job events
+        socket.on("job-created", (data) => {
+          logEvent(`🆕 Job Created: ${data.title} (ID: ${data.id})`, "success");
+        });
+
+        socket.on("job-status-updated", (data) => {
+          logEvent(
+            `📄 Job Status Updated: ${data.title} - ${data.status}`,
+            "info"
+          );
+        });
+
+        socket.on("job-progress-updated", (data) => {
+          logEvent(
+            `📊 Job Progress: ${data.title} - ${data.progress}%`,
+            "info"
+          );
+        });
+
+        // Inventory events
+        socket.on("inventory-update", (data) => {
+          logEvent(
+            `📦 Inventory Update: ${data.paperType} ${data.paperSize} - ${data.quantity} ${data.units}`,
+            "info"
+          );
+        });
+
+        socket.on("stock-alert", (data) => {
+          logEvent(
+            `🚨 Stock Alert: ${data.message} (${data.severity})`,
+            "error"
+          );
+        });
+
+        // Machine events
+        socket.on("machine-status-updated", (data) => {
+          logEvent(
+            `🏭 Machine ${data.machineId} Status: ${data.status}`,
+            "info"
+          );
+        });
+
+        // Quality events
+        socket.on("quality-check-added", (data) => {
+          logEvent(
+            `✅ Quality Check: Job ${data.jobId} - ${data.result}`,
+            "success"
+          );
+        });
+
+        // Notifications
+        socket.on("notification", (data) => {
+          logEvent(`🔔 Notification: ${data.message}`, "info");
+        });
+
+        // User events
+        socket.on("user-connected", (data) => {
+          logEvent(
+            `👤 User Connected: ${data.userName} (${data.role})`,
+            "info"
+          );
+        });
+
+        socket.on("user-disconnected", (data) => {
+          logEvent(
+            `👤 User Disconnected: ${data.userName} (${data.role})`,
+            "info"
+          );
+        });
+
+        // Job subscription events
+        socket.on("subscribed-to-job", (data) => {
+          logEvent(`📋 Subscribed to Job ${data.jobId}`, "success");
+        });
+
+        socket.on("unsubscribed-from-job", (data) => {
+          logEvent(`📋 Unsubscribed from Job ${data.jobId}`, "info");
+        });
+
+        // Ping/pong
+        socket.on("pong", (data) => {
+          logEvent(`🏓 Pong received at ${data.timestamp}`, "success");
+        });
+      }
+
+      function disconnect() {
+        if (socket) {
+          socket.disconnect();
+          socket = null;
+        }
+      }
+
+      function joinRoom() {
+        const room = document.getElementById("roomSelect").value;
+        if (socket && room) {
+          socket.emit("join-room", room);
+        }
+      }
+
+      function leaveRoom() {
+        const room = document.getElementById("roomSelect").value;
+        if (socket && room) {
+          socket.emit("leave-room", room);
+        }
+      }
+
+      function subscribeToJob() {
+        const jobId = document.getElementById("customJobId").value;
+        if (socket && jobId) {
+          socket.emit("subscribe-job-updates", jobId);
+        }
+      }
+
+      function unsubscribeFromJob() {
+        const jobId = document.getElementById("customJobId").value;
+        if (socket && jobId) {
+          socket.emit("unsubscribe-job-updates", jobId);
+        }
+      }
+
+      function testJobCreated() {
+        if (socket) {
+          // This would normally come from the server, but we can test the event handling
+          socket.emit("test-event", {
+            type: "job-created",
+            data: {
+              id: "test-job-" + Date.now(),
+              title: "Test Job Creation",
+              status: "pending",
+              assignedMachine: 1,
+            },
+          });
+          logEvent("Sent test job created event", "info");
+        }
+      }
+
+      function testInventoryUpdate() {
+        if (socket) {
+          socket.emit("test-event", {
+            type: "inventory-update",
+            data: {
+              paperType: "A4",
+              paperSize: "210x297",
+              quantity: 500,
+              units: "sheets",
+            },
+          });
+          logEvent("Sent test inventory update event", "info");
+        }
+      }
+
+      function testMachineStatus() {
+        if (socket) {
+          socket.emit("machine-status-update", {
+            machineId: 1,
+            status: "running",
+            efficiency: 85,
+            currentJob: "test-job-123",
+          });
+          logEvent("Sent machine status update", "info");
+        }
+      }
+
+      function testStockAlert() {
+        if (socket) {
+          socket.emit("test-event", {
+            type: "stock-alert",
+            data: {
+              type: "low_stock",
+              message: "A4 paper running low",
+              severity: "medium",
+            },
+          });
+          logEvent("Sent test stock alert", "info");
+        }
+      }
+
+      function pingServer() {
+        if (socket) {
+          socket.emit("ping");
+          logEvent("🏓 Ping sent", "info");
+        }
+      }
+
+      function clearLog() {
+        document.getElementById("eventLog").innerHTML = "";
+      }
+
+      // Initialize
+      updateConnectionStatus(false);
+      logEvent("Socket.io test client initialized", "info");
+    </script>
+  </body>
+</html>

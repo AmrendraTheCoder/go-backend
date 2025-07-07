@@ -285,7 +285,43 @@
         "createdDate": "2025-01-27T10:00:00.000Z",
         "details": "Create responsive React.js dashboard with job queue management, approval workflows, pricing management, user administration, real-time status monitoring, and comprehensive reporting interface.",
         "testStrategy": "Test all admin functions, responsive design, real-time updates, and user interface usability",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": "7.1",
+            "title": "React App Setup",
+            "description": "Initialize React app with routing, state management, UI framework",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "7.2",
+            "title": "Job Management Dashboard",
+            "description": "Create job queue, approval/rejection interface, pricing controls",
+            "status": "pending",
+            "dependencies": ["7.1"]
+          },
+          {
+            "id": "7.3",
+            "title": "Customer Management Interface",
+            "description": "Add/edit customers, view customer history and balances",
+            "status": "pending",
+            "dependencies": ["7.1"]
+          },
+          {
+            "id": "7.4",
+            "title": "Inventory Management Dashboard",
+            "description": "Stock levels, alerts, reorder management interface",
+            "status": "pending",
+            "dependencies": ["7.1"]
+          },
+          {
+            "id": "7.5",
+            "title": "Real-time Updates Integration",
+            "description": "Socket.io client for live updates across admin panels",
+            "status": "pending",
+            "dependencies": ["7.2", "7.3", "7.4"]
+          }
+        ]
       },
       {
         "id": "8",
@@ -297,7 +333,36 @@
         "createdDate": "2025-01-27T10:00:00.000Z",
         "details": "Create touch-optimized PWA for tablets with job queue display, status update controls, progress tracking, photo capture functionality, and offline capability with sync.",
         "testStrategy": "Test tablet interface usability, offline functionality, photo capture, status updates, and sync when reconnected",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": "8.1",
+            "title": "PWA Setup",
+            "description": "Configure PWA with offline capability and tablet optimization",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "8.2",
+            "title": "Machine Job Queue Interface",
+            "description": "Display assigned jobs for specific machine operators",
+            "status": "pending",
+            "dependencies": ["8.1"]
+          },
+          {
+            "id": "8.3",
+            "title": "Status Update Controls",
+            "description": "Touch-friendly job progress and status update interface",
+            "status": "pending",
+            "dependencies": ["8.1"]
+          },
+          {
+            "id": "8.4",
+            "title": "Photo Capture Integration",
+            "description": "Camera functionality for job progress documentation",
+            "status": "pending",
+            "dependencies": ["8.1"]
+          }
+        ]
       },
       {
         "id": "9",
@@ -309,7 +374,36 @@
         "createdDate": "2025-01-27T10:00:00.000Z",
         "details": "Create tablet interface for inventory management with manual entry forms, stock level updates, location tracking, reorder management, and integration with job material requirements.",
         "testStrategy": "Test inventory entry, stock updates, location management, and integration with job requirements",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": "9.1",
+            "title": "Stock Entry Form",
+            "description": "Touch-optimized form for: party, paper type, size, GSM, quantity, units",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "9.2",
+            "title": "Inventory Update Interface",
+            "description": "Quick stock level adjustments and location updates",
+            "status": "pending",
+            "dependencies": ["9.1"]
+          },
+          {
+            "id": "9.3",
+            "title": "Stock Alerts Dashboard",
+            "description": "Display low stock alerts and reorder suggestions",
+            "status": "pending",
+            "dependencies": ["9.1"]
+          },
+          {
+            "id": "9.4",
+            "title": "Paper Provider Integration",
+            "description": "Interface for managing customer-provided paper stock",
+            "status": "pending",
+            "dependencies": ["9.1"]
+          }
+        ]
       },
       {
         "id": "10",
@@ -321,7 +415,36 @@
         "createdDate": "2025-01-27T10:00:00.000Z",
         "details": "Create pricing engine with material cost integration, labor time estimation, overhead calculations, cost center allocation, and detailed profitability reporting per job.",
         "testStrategy": "Test pricing calculations, cost tracking accuracy, profitability analysis, and pricing rule modifications",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": "10.1",
+            "title": "Pricing Rules Engine",
+            "description": "Create admin-configurable pricing rules for materials and services",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "10.2",
+            "title": "Cost Calculation APIs",
+            "description": "Auto-calculate rate per unit, plate price, printing cost, UV coating, baking",
+            "status": "pending",
+            "dependencies": ["10.1"]
+          },
+          {
+            "id": "10.3",
+            "title": "Customer Balance Management",
+            "description": "Update customer balance automatically on job completion",
+            "status": "pending",
+            "dependencies": ["10.2"]
+          },
+          {
+            "id": "10.4",
+            "title": "Profitability Analysis",
+            "description": "Generate cost analysis and profit margin reports per job",
+            "status": "pending",
+            "dependencies": ["10.2", "10.3"]
+          }
+        ]
       },
       {
         "id": "11",
@@ -333,7 +456,36 @@
         "createdDate": "2025-01-27T10:00:00.000Z",
         "details": "Develop AI service for analyzing operational data patterns, generating predictive reports, identifying bottlenecks, and providing optimization recommendations using machine learning algorithms.",
         "testStrategy": "Test data analysis accuracy, prediction quality, report generation, and optimization recommendation relevance",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": "11.1",
+            "title": "Python Flask AI Service",
+            "description": "Set up Flask API for AI analytics with database connectivity",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "11.2",
+            "title": "Data Analysis Models",
+            "description": "Implement ML models for job efficiency and inventory optimization",
+            "status": "pending",
+            "dependencies": ["11.1"]
+          },
+          {
+            "id": "11.3",
+            "title": "Predictive Analytics",
+            "description": "Create models for demand forecasting and bottleneck prediction",
+            "status": "pending",
+            "dependencies": ["11.1"]
+          },
+          {
+            "id": "11.4",
+            "title": "AI Reports Integration",
+            "description": "Integrate AI insights into admin dashboard and reports",
+            "status": "pending",
+            "dependencies": ["11.2", "11.3"]
+          }
+        ]
       },
       {
         "id": "12",
@@ -345,7 +497,36 @@
         "createdDate": "2025-01-27T10:00:00.000Z",
         "details": "Set up production environment with Docker containers, configure monitoring and logging, implement security measures, SSL certificates, and create deployment scripts for the complete system.",
         "testStrategy": "Test full system deployment, security measures, monitoring functionality, and end-to-end system integration",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": "12.1",
+            "title": "Docker Configuration",
+            "description": "Create Docker containers for backend, frontend, AI service, database",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "12.2",
+            "title": "Production Environment Setup",
+            "description": "Configure production server with SSL, security measures, monitoring",
+            "status": "pending",
+            "dependencies": ["12.1"]
+          },
+          {
+            "id": "12.3",
+            "title": "CI/CD Pipeline",
+            "description": "Set up automated deployment and testing pipeline",
+            "status": "pending",
+            "dependencies": ["12.1"]
+          },
+          {
+            "id": "12.4",
+            "title": "System Testing",
+            "description": "End-to-end testing of complete manufacturing management system",
+            "status": "pending",
+            "dependencies": ["12.2", "12.3"]
+          }
+        ]
       }
     ],
     "metadata": {
