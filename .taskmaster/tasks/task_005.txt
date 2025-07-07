@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Job Management API and Core Logic
-# Status: pending
+# Status: done
 # Dependencies: 3 (Not found), 4 (Not found)
 # Priority: high
 # Description: Create CRUD operations for job lifecycle management from creation to completion
@@ -11,31 +11,31 @@ Implement job creation, approval workflow, assignment to machines, progress trac
 Test job creation, approval process, status updates, progress tracking, and completion workflow end-to-end
 
 # Subtasks:
-## 5.1. Job Creation API [pending]
+## 5.1. Job Creation API [done]
 ### Dependencies: None
 ### Description: 4-section job form: basic info, job details, cost calculation, review
 ### Details:
 
 
-## 5.2. Job Approval Workflow [pending]
+## 5.2. Job Approval Workflow [done]
 ### Dependencies: 5.1
 ### Description: Admin approval/rejection/modification with pricing control
 ### Details:
 
 
-## 5.3. Machine Assignment Logic [pending]
+## 5.3. Machine Assignment Logic [done]
 ### Dependencies: 5.1
 ### Description: Assign jobs to Machine 1 or 2 with scheduling
 ### Details:
 
 
-## 5.4. Job Progress Tracking [pending]
+## 5.4. Job Progress Tracking [done]
 ### Dependencies: 5.2, 5.3
 ### Description: Real-time status updates and progress monitoring
 ### Details:
 
 
-## 5.5. Cost Calculation Engine [pending]
+## 5.5. Cost Calculation Engine [done]
 ### Dependencies: 5.1
 ### Description: Auto-calculate printing cost, plate price, UV coating, baking costs
 ### Details:

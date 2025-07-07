@@ -171,6 +171,15 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    loginAttempts: [
+      {
+        success: { type: Boolean, required: true },
+        timestamp: { type: Date, default: Date.now },
+        ip: String,
+        userAgent: String,
+      },
+    ],
+    tokenBlacklist: [String],
     accountLockedUntil: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,

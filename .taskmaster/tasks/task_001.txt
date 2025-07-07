@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Database Setup and Schema Design
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Set up MongoDB database with all required collections for jobs, inventory, users, and analytics
@@ -11,37 +11,37 @@ Design and implement MongoDB collections for Jobs, Inventory, Users, MachineUpda
 Verify all collections are created with proper schemas, test data insertion and retrieval, validate relationships between collections
 
 # Subtasks:
-## 1.1. Create Customer/Party Model [pending]
+## 1.1. Create Customer/Party Model [done]
 ### Dependencies: None
 ### Description: Implement customer management for job form basic info section
 ### Details:
 
 
-## 1.2. Create PaperType and PaperSize Models [pending]
+## 1.2. Create PaperType and PaperSize Models [done]
 ### Dependencies: None
 ### Description: Models for paper selection dropdowns with GSM integration
 ### Details:
 
 
-## 1.3. Update Job Model for 4-Section Form [pending]
+## 1.3. Update Job Model for 4-Section Form [done]
 ### Dependencies: 1.1, 1.2
 ### Description: Enhance Job model for basic info, job details, cost calculation, review sections
 ### Details:
 
 
-## 1.4. Create Stock/Inventory Model [pending]
+## 1.4. Create Stock/Inventory Model [done]
 ### Dependencies: 1.1, 1.2
 ### Description: Paper stock management with party, type, size, GSM, quantity, units
 ### Details:
 
 
-## 1.5. Create User and Machine Models [pending]
+## 1.5. Create User and Machine Models [done]
 ### Dependencies: None
 ### Description: User roles and machine assignment models
 ### Details:
 
 
-## 1.6. Database Connection and Seeding [pending]
+## 1.6. Database Connection and Seeding [done]
 ### Dependencies: 1.1, 1.2, 1.3, 1.4, 1.5
 ### Description: Setup connection, initial data, GSM values, standard paper sizes
 ### Details:

@@ -153,33 +153,46 @@ class DatabaseConnection {
     try {
       console.log("🌱 Starting database seeding...");
 
-      // Check if data already exists
+      // Check counts for each collection
       const userCount = await User.countDocuments();
       const customerCount = await Customer.countDocuments();
       const paperTypeCount = await PaperType.countDocuments();
       const machineCount = await Machine.countDocuments();
 
-      if (
-        userCount > 0 ||
-        customerCount > 0 ||
-        paperTypeCount > 0 ||
-        machineCount > 0
-      ) {
-        console.log("📊 Database already contains data, skipping seeding");
-        return;
+      console.log(
+        `📊 Current counts: Users(${userCount}), Customers(${customerCount}), PaperTypes(${paperTypeCount}), Machines(${machineCount})`
+      );
+
+      // Seed individual collections that are missing
+      if (userCount === 0) {
+        console.log("👥 Seeding users...");
+        await this.seedUsers();
+      } else {
+        console.log("👥 Users already exist, skipping user seeding");
       }
 
-      // Seed Users
-      await this.seedUsers();
+      if (customerCount === 0) {
+        console.log("🏢 Seeding customers...");
+        await this.seedCustomers();
+      } else {
+        console.log("🏢 Customers already exist, skipping customer seeding");
+      }
 
-      // Seed Customers
-      await this.seedCustomers();
+      if (paperTypeCount === 0) {
+        console.log("📄 Seeding paper types...");
+        await this.seedPaperTypes();
+      } else {
+        console.log(
+          "📄 Paper types already exist, skipping paper type seeding"
+        );
+      }
 
-      // Seed Paper Types
-      await this.seedPaperTypes();
-
-      // Seed Machines
-      await this.seedMachines();
+      if (machineCount === 0) {
+        console.log("🏭 Seeding machines...");
+        await this.seedMachines();
+      } else {
+        console.log("🏭 Machines already exist, skipping machine seeding");
+      }
 
       console.log("✅ Database seeding completed successfully");
     } catch (error) {
@@ -317,70 +330,104 @@ class DatabaseConnection {
       },
     ];
 
-    const createdUsers = await User.insertMany(defaultUsers);
-    console.log(`👥 Created ${createdUsers.length} default users`);
+    // Use individual saves to trigger password hashing middleware
+    const createdUsers = [];
+    for (const userData of defaultUsers) {
+      const user = new User(userData);
+      const savedUser = await user.save();
+      createdUsers.push(savedUser);
+    }
+
+    console.log(
+      `👥 Created ${createdUsers.length} default users with hashed passwords`
+    );
     return createdUsers;
   }
 
   async seedCustomers() {
+    // Get the first admin user to assign as createdBy
+    const adminUser = await User.findOne({ role: "admin" });
+    if (!adminUser) {
+      throw new Error("No admin user found for customer seeding");
+    }
+
     const defaultCustomers = [
       {
-        companyName: "ABC Corporation",
-        contactPerson: "John Smith",
-        email: "john@abccorp.com",
-        phone: "+91-9876543210",
-        address: {
-          street: "123 Business Street",
-          city: "Mumbai",
-          state: "Maharashtra",
-          zipCode: "400001",
-          country: "India",
+        customerCode: "CUST0001",
+        partyName: "ABC Corporation",
+        contactInfo: {
+          primaryContact: "John Smith",
+          phone: "+91-9876543210",
+          email: "john@abccorp.com",
+          address: {
+            street: "123 Business Street",
+            city: "Mumbai",
+            state: "Maharashtra",
+            zipCode: "400001",
+            country: "India",
+          },
         },
-        businessType: "corporate",
-        paymentTerms: "net_30",
-        creditLimit: 100000,
-        discountPercentage: 5,
-        status: "active",
-        taxInfo: {
+        businessInfo: {
+          businessType: "corporate",
           gstNumber: "GST123456789",
           panNumber: "ABCDE1234F",
         },
+        accountInfo: {
+          creditLimit: 100000,
+          paymentTerms: "Net 30",
+        },
+        status: "active",
+        createdBy: adminUser._id,
       },
       {
-        companyName: "XYZ Enterprises",
-        contactPerson: "Sarah Johnson",
-        email: "sarah@xyzent.com",
-        phone: "+91-9876543211",
-        address: {
-          street: "456 Commerce Road",
-          city: "Delhi",
-          state: "Delhi",
-          zipCode: "110001",
-          country: "India",
+        customerCode: "CUST0002",
+        partyName: "XYZ Enterprises",
+        contactInfo: {
+          primaryContact: "Sarah Johnson",
+          phone: "+91-9876543211",
+          email: "sarah@xyzent.com",
+          address: {
+            street: "456 Commerce Road",
+            city: "Delhi",
+            state: "Delhi",
+            zipCode: "110001",
+            country: "India",
+          },
         },
-        businessType: "small_business",
-        paymentTerms: "advance",
-        creditLimit: 50000,
-        discountPercentage: 3,
+        businessInfo: {
+          businessType: "small_business",
+        },
+        accountInfo: {
+          creditLimit: 50000,
+          paymentTerms: "Advance",
+        },
         status: "active",
+        createdBy: adminUser._id,
       },
       {
-        companyName: "Print Solutions Ltd",
-        contactPerson: "Raj Patel",
-        email: "raj@printsol.com",
-        phone: "+91-9876543212",
-        address: {
-          street: "789 Industrial Area",
-          city: "Pune",
-          state: "Maharashtra",
-          zipCode: "411001",
-          country: "India",
+        customerCode: "CUST0003",
+        partyName: "Print Solutions Ltd",
+        contactInfo: {
+          primaryContact: "Raj Patel",
+          phone: "+91-9876543212",
+          email: "raj@printsol.com",
+          address: {
+            street: "789 Industrial Area",
+            city: "Pune",
+            state: "Maharashtra",
+            zipCode: "411001",
+            country: "India",
+          },
         },
-        businessType: "corporate",
-        paymentTerms: "net_15",
-        creditLimit: 75000,
-        discountPercentage: 4,
+        businessInfo: {
+          businessType: "corporate",
+        },
+        accountInfo: {
+          creditLimit: 75000,
+          paymentTerms: "Net 15",
+        },
         status: "active",
+        createdBy: adminUser._id,
       },
     ];
 
@@ -390,88 +437,167 @@ class DatabaseConnection {
   }
 
   async seedPaperTypes() {
+    // Get the first admin user to assign as createdBy
+    const adminUser = await User.findOne({ role: "admin" });
+    if (!adminUser) {
+      throw new Error("No admin user found for paper type seeding");
+    }
+
     const defaultPaperTypes = [
       {
         name: "Bond Paper",
         description: "High-quality bond paper for office use",
-        category: "office",
-        manufacturer: "JK Paper",
-        finish: "smooth",
-        opacity: 90,
-        brightness: 85,
-        specifications: {
-          grain: "long",
-          formation: "even",
-          roughness: "low",
-        },
+        category: "printing",
         availableGSM: [70, 80, 90, 100],
-        isActive: true,
+        characteristics: {
+          finish: "plain",
+          opacity: 90,
+          brightness: 85,
+          printability: "good",
+        },
+        pricing: {
+          basePrice: 0.05,
+          gsmMultiplier: 1.0,
+          currency: "INR",
+        },
+        supplier: {
+          name: "JK Paper",
+          contact: "+91-9876543210",
+          leadTime: 7,
+        },
+        status: "active",
+        createdBy: adminUser._id,
       },
       {
         name: "Art Paper",
         description: "Glossy art paper for high-quality printing",
-        category: "art",
-        manufacturer: "ITC Paperboards",
-        finish: "glossy",
-        opacity: 95,
-        brightness: 90,
-        specifications: {
-          grain: "short",
-          formation: "excellent",
-          roughness: "very_low",
-        },
+        category: "printing",
         availableGSM: [90, 130, 150, 170, 200, 250, 300],
-        isActive: true,
+        characteristics: {
+          finish: "glossy",
+          opacity: 95,
+          brightness: 90,
+          printability: "excellent",
+        },
+        pricing: {
+          basePrice: 0.08,
+          gsmMultiplier: 1.2,
+          currency: "INR",
+        },
+        supplier: {
+          name: "ITC Paperboards",
+          contact: "+91-9876543211",
+          leadTime: 5,
+        },
+        status: "active",
+        createdBy: adminUser._id,
       },
       {
         name: "Maplitho Paper",
         description: "Uncoated printing paper for books and magazines",
-        category: "book",
-        manufacturer: "Ballarpur Industries",
-        finish: "matte",
-        opacity: 88,
-        brightness: 82,
-        specifications: {
-          grain: "long",
-          formation: "good",
-          roughness: "medium",
-        },
+        category: "printing",
         availableGSM: [60, 70, 80, 90, 100],
-        isActive: true,
+        characteristics: {
+          finish: "matte",
+          opacity: 88,
+          brightness: 82,
+          printability: "good",
+        },
+        pricing: {
+          basePrice: 0.04,
+          gsmMultiplier: 0.9,
+          currency: "INR",
+        },
+        supplier: {
+          name: "Ballarpur Industries",
+          contact: "+91-9876543212",
+          leadTime: 10,
+        },
+        status: "active",
+        createdBy: adminUser._id,
       },
       {
         name: "Newsprint",
         description: "Economical paper for newspapers and low-cost printing",
-        category: "newsprint",
-        manufacturer: "Hindustan Newsprint",
-        finish: "rough",
-        opacity: 85,
-        brightness: 70,
-        specifications: {
-          grain: "long",
-          formation: "fair",
-          roughness: "high",
+        category: "printing",
+        availableGSM: [45, 48, 52],
+        characteristics: {
+          finish: "plain",
+          opacity: 85,
+          brightness: 70,
+          printability: "fair",
         },
-        availableGSM: [45, 48.8, 52],
-        isActive: true,
+        pricing: {
+          basePrice: 0.02,
+          gsmMultiplier: 0.8,
+          currency: "INR",
+        },
+        supplier: {
+          name: "Hindustan Newsprint",
+          contact: "+91-9876543213",
+          leadTime: 15,
+        },
+        status: "active",
+        createdBy: adminUser._id,
       },
       {
         name: "Card Stock",
         description: "Heavy-duty paper for business cards and packaging",
-        category: "cardboard",
-        manufacturer: "Tamil Nadu Newsprint",
-        finish: "smooth",
-        opacity: 98,
-        brightness: 88,
-        specifications: {
-          grain: "short",
-          formation: "excellent",
-          roughness: "low",
-        },
+        category: "packaging",
         availableGSM: [200, 250, 300, 350, 400],
-        isActive: true,
+        characteristics: {
+          finish: "matte",
+          opacity: 98,
+          brightness: 88,
+          printability: "excellent",
+        },
+        pricing: {
+          basePrice: 0.12,
+          gsmMultiplier: 1.5,
+          currency: "INR",
+        },
+        supplier: {
+          name: "Tamil Nadu Newsprint",
+          contact: "+91-9876543214",
+          leadTime: 8,
+        },
+        status: "active",
+        createdBy: adminUser._id,
+      },
+      {
+        name: "Specialty Coated Paper",
+        description: "Premium coated paper for luxury printing",
+        category: "specialty",
+        availableGSM: [100, 130, 150, 170, 200],
+        characteristics: {
+          finish: "glossy",
+          opacity: 98,
+          brightness: 95,
+          printability: "excellent",
+        },
+        pricing: {
+          basePrice: 0.15,
+          gsmMultiplier: 1.8,
+          currency: "INR",
+        },
+        supplier: {
+          name: "Premium Papers Ltd",
+          contact: "+91-9876543215",
+          leadTime: 12,
+        },
+        status: "active",
+        createdBy: adminUser._id,
       },
     ];
+
+    // Add standard sizes to each paper type
+    const standardSizes = PaperType.getStandardSizes();
+    defaultPaperTypes.forEach((paperType) => {
+      paperType.availableSizes = standardSizes;
+      // Set default GSM to the middle value
+      paperType.defaultGSM =
+        paperType.availableGSM[Math.floor(paperType.availableGSM.length / 2)];
+    });
 
     const createdPaperTypes = await PaperType.insertMany(defaultPaperTypes);
     console.log(`📄 Created ${createdPaperTypes.length} default paper types`);

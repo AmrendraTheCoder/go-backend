@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Inventory Management API
-# Status: pending
+# Status: done
 # Dependencies: 3 (Not found), 5 (Not found)
 # Priority: high
 # Description: Implement stock level tracking, material requirements, and transaction logging
@@ -11,31 +11,31 @@ Create inventory CRUD operations, stock level monitoring, automatic reorder aler
 Test inventory updates, stock level alerts, material allocation to jobs, and transaction logging accuracy
 
 # Subtasks:
-## 6.1. Stock Entry API [pending]
+## 6.1. Stock Entry API [done]
 ### Dependencies: None
 ### Description: Create paper stock form: party, type, size, GSM, quantity, units
 ### Details:
 
 
-## 6.2. Stock Level Monitoring [pending]
+## 6.2. Stock Level Monitoring [done]
 ### Dependencies: 6.1
 ### Description: Track inventory levels with automatic alerts for reordering
 ### Details:
 
 
-## 6.3. Material Allocation [pending]
+## 6.3. Material Allocation [done]
 ### Dependencies: 6.1
 ### Description: Reserve and allocate materials for specific jobs
 ### Details:
 
 
-## 6.4. Transaction History [pending]
+## 6.4. Transaction History [done]
 ### Dependencies: 6.1
 ### Description: Log all stock movements and usage tracking
 ### Details:
 
 
-## 6.5. Paper Provided by Party [pending]
+## 6.5. Paper Provided by Party [done]
 ### Dependencies: 6.1
 ### Description: Handle customer-provided paper tracking and management
 ### Details:

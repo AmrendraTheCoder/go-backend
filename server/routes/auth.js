@@ -198,12 +198,22 @@ router.post("/login", authLimiter, loginValidation, async (req, res) => {
       $or: [{ username }, { email: username }],
     }).populate("assignedMachines", "name machineId currentStatus");
 
+    console.log("🔍 Login attempt:", { username, userFound: !!user });
+
     if (!user) {
       return res.status(401).json({
         message: "Invalid credentials",
         code: "INVALID_CREDENTIALS",
       });
     }
+
+    console.log("👤 User found:", {
+      id: user._id,
+      username: user.username,
+      hasPassword: !!user.password,
+      passwordLength: user.password ? user.password.length : 0,
+      isActive: user.isActive,
+    });
 
     // Check if user is active
     if (!user.isActive) {
@@ -214,9 +224,13 @@ router.post("/login", authLimiter, loginValidation, async (req, res) => {
     }
 
     // Check password
+    console.log("🔐 Comparing password...");
     const isMatch = await user.comparePassword(password);
+    console.log("🔐 Password match result:", isMatch);
+
     if (!isMatch) {
       // Log failed attempt
+      if (!user.loginAttempts) user.loginAttempts = [];
       user.loginAttempts.push({
         success: false,
         ip: req.ip,
@@ -237,6 +251,7 @@ router.post("/login", authLimiter, loginValidation, async (req, res) => {
     // Update user login info
     user.lastLogin = new Date();
     user.lastActivity = new Date();
+    if (!user.loginAttempts) user.loginAttempts = [];
     user.loginAttempts.push({
       success: true,
       ip: req.ip,
@@ -264,9 +279,9 @@ router.post("/login", authLimiter, loginValidation, async (req, res) => {
       code: "LOGIN_SUCCESS",
     });
 
-    console.log(`User logged in: ${user.username} from ${req.ip}`);
+    console.log(`✅ User logged in: ${user.username} from ${req.ip}`);
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("❌ Login error:", error);
     res.status(500).json({
       message: "Error during login",
       error:
@@ -684,6 +699,241 @@ router.get("/test-verify", async (req, res) => {
       message: "Token verification failed",
       error: error.message,
       code: "TOKEN_INVALID",
+    });
+  }
+});
+
+// @route   GET /api/auth/debug-users
+// @desc    Debug endpoint to check what users exist (TEMPORARY)
+// @access  Public (for debugging only)
+router.get("/debug-users", async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select("username email role isActive")
+      .limit(10);
+
+    res.json({
+      message: "Debug: Users in database",
+      count: users.length,
+      users: users,
+      code: "DEBUG_USERS",
+    });
+  } catch (error) {
+    console.error("Debug users error:", error);
+    res.status(500).json({
+      message: "Error retrieving users",
+      error: error.message,
+      code: "DEBUG_ERROR",
+    });
+  }
+});
+
+// @route   GET /api/auth/debug-password
+// @desc    Debug endpoint to check password hashing (TEMPORARY)
+// @access  Public (for debugging only)
+router.get("/debug-password/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.json({
+        message: "User not found",
+        username,
+        code: "USER_NOT_FOUND",
+      });
+    }
+
+    // Test password comparison
+    const testPassword = "admin123";
+    const isMatch = await user.comparePassword(testPassword);
+
+    res.json({
+      message: "Debug: Password info",
+      username: user.username,
+      hasPassword: !!user.password,
+      passwordLength: user.password ? user.password.length : 0,
+      passwordPrefix: user.password
+        ? user.password.substring(0, 10) + "..."
+        : null,
+      testPasswordResult: isMatch,
+      testPassword: testPassword,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      code: "DEBUG_PASSWORD",
+    });
+  } catch (error) {
+    console.error("Debug password error:", error);
+    res.status(500).json({
+      message: "Error checking password",
+      error: error.message,
+      code: "DEBUG_ERROR",
+    });
+  }
+});
+
+// @route   POST /api/auth/reseed-users
+// @desc    Clear and re-seed users with proper password hashing (TEMPORARY)
+// @access  Public (for debugging only)
+router.post("/reseed-users", async (req, res) => {
+  try {
+    const dbConnection = require("../database/connection");
+
+    // Clear existing users
+    await User.deleteMany({});
+    console.log("🗑️ Cleared existing users");
+
+    // Re-seed with proper hashing
+    const users = await dbConnection.seedUsers();
+
+    res.json({
+      message: "Users re-seeded successfully",
+      count: users.length,
+      users: users.map((u) => ({ username: u.username, role: u.role })),
+      code: "RESEED_SUCCESS",
+    });
+  } catch (error) {
+    console.error("Reseed users error:", error);
+    res.status(500).json({
+      message: "Error re-seeding users",
+      error: error.message,
+      code: "RESEED_ERROR",
+    });
+  }
+});
+
+// @route   POST /api/auth/seed-customers
+// @desc    Seed customers if none exist
+// @access  Public (for debugging only)
+router.post("/seed-customers", async (req, res) => {
+  try {
+    const dbConnection = require("../database/connection");
+    const Customer = require("../models/Customer");
+
+    const count = await Customer.countDocuments();
+    if (count > 0) {
+      return res.json({
+        message: "Customers already exist",
+        count,
+        code: "CUSTOMERS_EXIST",
+      });
+    }
+
+    const customers = await dbConnection.seedCustomers();
+
+    res.json({
+      message: "Customers seeded successfully",
+      count: customers.length,
+      customers: customers.map((c) => ({
+        code: c.customerCode,
+        name: c.partyName,
+      })),
+      code: "SEED_SUCCESS",
+    });
+  } catch (error) {
+    console.error("Seed customers error:", error);
+    res.status(500).json({
+      message: "Error seeding customers",
+      error: error.message,
+      code: "SEED_ERROR",
+    });
+  }
+});
+
+// @route   POST /api/auth/seed-papertypes
+// @desc    Seed paper types if none exist
+// @access  Public (for debugging only)
+router.post("/seed-papertypes", async (req, res) => {
+  try {
+    const dbConnection = require("../database/connection");
+    const PaperType = require("../models/PaperType");
+
+    const count = await PaperType.countDocuments();
+    if (count > 0) {
+      return res.json({
+        message: "Paper types already exist",
+        count,
+        code: "PAPERTYPES_EXIST",
+      });
+    }
+
+    const paperTypes = await dbConnection.seedPaperTypes();
+
+    res.json({
+      message: "Paper types seeded successfully",
+      count: paperTypes.length,
+      paperTypes: paperTypes.map((p) => ({
+        name: p.name,
+        category: p.category,
+      })),
+      code: "SEED_SUCCESS",
+    });
+  } catch (error) {
+    console.error("Seed paper types error:", error);
+    res.status(500).json({
+      message: "Error seeding paper types",
+      error: error.message,
+      code: "SEED_ERROR",
+    });
+  }
+});
+
+// @route   POST /api/auth/seed-machines
+// @desc    Seed machines if none exist
+// @access  Public (for debugging only)
+router.post("/seed-machines", async (req, res) => {
+  try {
+    const dbConnection = require("../database/connection");
+    const Machine = require("../models/Machine");
+
+    const count = await Machine.countDocuments();
+    if (count > 0) {
+      return res.json({
+        message: "Machines already exist",
+        count,
+        code: "MACHINES_EXIST",
+      });
+    }
+
+    const machines = await dbConnection.seedMachines();
+
+    res.json({
+      message: "Machines seeded successfully",
+      count: machines.length,
+      machines: machines.map((m) => ({ id: m.machineId, name: m.name })),
+      code: "SEED_SUCCESS",
+    });
+  } catch (error) {
+    console.error("Seed machines error:", error);
+    res.status(500).json({
+      message: "Error seeding machines",
+      error: error.message,
+      code: "SEED_ERROR",
+    });
+  }
+});
+
+// @route   POST /api/auth/seed-all
+// @desc    Trigger complete database seeding
+// @access  Public (for debugging only)
+router.post("/seed-all", async (req, res) => {
+  try {
+    const dbConnection = require("../database/connection");
+
+    await dbConnection.seedDatabase();
+    const stats = await dbConnection.getStats();
+
+    res.json({
+      message: "Database seeding completed",
+      statistics: stats,
+      code: "SEED_ALL_SUCCESS",
+    });
+  } catch (error) {
+    console.error("Seed all error:", error);
+    res.status(500).json({
+      message: "Error seeding database",
+      error: error.message,
+      code: "SEED_ALL_ERROR",
     });
   }
 });

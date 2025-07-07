@@ -17,7 +17,6 @@ router.get(
     query("limit").optional().isInt({ min: 1, max: 100 }),
     query("search").optional().isLength({ min: 1 }),
     query("isActive").optional().isBoolean(),
-    query("customerType").optional().isIn(["regular", "premium", "vip"]),
   ],
   async (req, res) => {
     try {
@@ -38,24 +37,22 @@ router.get(
       const filter = {};
 
       if (req.query.isActive !== undefined)
-        filter.isActive = req.query.isActive === "true";
-      if (req.query.customerType) filter.customerType = req.query.customerType;
+        filter.status = req.query.isActive === "true" ? "active" : "inactive";
 
-      // Search across company name, contact person, phone, email
+      // Search across party name, contact person, phone, email
       if (req.query.search) {
         filter.$or = [
-          { companyName: new RegExp(req.query.search, "i") },
-          { contactPerson: new RegExp(req.query.search, "i") },
-          { phone: new RegExp(req.query.search, "i") },
-          { email: new RegExp(req.query.search, "i") },
-          { gstNumber: new RegExp(req.query.search, "i") },
+          { partyName: new RegExp(req.query.search, "i") },
+          { "contactInfo.primaryContact": new RegExp(req.query.search, "i") },
+          { "contactInfo.phone": new RegExp(req.query.search, "i") },
+          { "contactInfo.email": new RegExp(req.query.search, "i") },
+          { "businessInfo.gstNumber": new RegExp(req.query.search, "i") },
         ];
       }
 
       const customers = await Customer.find(filter)
         .populate("createdBy", "firstName lastName username")
-        .populate("lastModifiedBy", "firstName lastName username")
-        .sort({ companyName: 1 })
+        .sort({ partyName: 1 })
         .skip(skip)
         .limit(limit);
 
@@ -65,17 +62,9 @@ router.get(
       // Calculate summary statistics
       const stats = {
         total,
-        active: await Customer.countDocuments({ ...filter, isActive: true }),
-        inactive: await Customer.countDocuments({ ...filter, isActive: false }),
-        regular: await Customer.countDocuments({
-          ...filter,
-          customerType: "regular",
-        }),
-        premium: await Customer.countDocuments({
-          ...filter,
-          customerType: "premium",
-        }),
-        vip: await Customer.countDocuments({ ...filter, customerType: "vip" }),
+        active: await Customer.countDocuments({ status: "active" }),
+        inactive: await Customer.countDocuments({ status: "inactive" }),
+        blacklisted: await Customer.countDocuments({ status: "blacklisted" }),
       };
 
       res.json({
@@ -110,9 +99,10 @@ router.get(
 // @access  Private (All authenticated users)
 router.get("/:id", authenticate, async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id)
-      .populate("createdBy", "firstName lastName username")
-      .populate("lastModifiedBy", "firstName lastName username");
+    const customer = await Customer.findById(req.params.id).populate(
+      "createdBy",
+      "firstName lastName username"
+    );
 
     if (!customer) {
       return res.status(404).json({
@@ -314,7 +304,6 @@ router.put(
       }
 
       const updates = { ...req.body };
-      updates.lastModifiedBy = req.user._id;
 
       // Check if phone/email/GST conflicts with other customers
       if (updates.phone || updates.email || updates.gstNumber) {
@@ -346,9 +335,7 @@ router.put(
         req.params.id,
         updates,
         { new: true, runValidators: true }
-      )
-        .populate("createdBy", "firstName lastName username")
-        .populate("lastModifiedBy", "firstName lastName username");
+      ).populate("createdBy", "firstName lastName username");
 
       if (!customer) {
         return res.status(404).json({
@@ -448,18 +435,14 @@ router.put(
 
       // Update balance
       customer.accountBalance = newBalance;
-      customer.lastModifiedBy = req.user._id;
 
       await customer.save();
 
       // Populate and return
-      const updatedCustomer = await Customer.findById(customer._id)
-        .populate(
-          "transactionHistory.performedBy",
-          "firstName lastName username"
-        )
-        .populate("lastModifiedBy", "firstName lastName username");
-
+      const updatedCustomer = await Customer.findById(customer._id).populate(
+        "transactionHistory.performedBy",
+        "firstName lastName username"
+      );
       res.json({
         message: "Customer balance updated successfully",
         customer: updatedCustomer,
@@ -628,7 +611,6 @@ router.delete("/:id", authenticate, requireRole("admin"), async (req, res) => {
       req.params.id,
       {
         isActive: false,
-        lastModifiedBy: req.user._id,
       },
       { new: true }
     );

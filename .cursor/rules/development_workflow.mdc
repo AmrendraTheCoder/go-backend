@@ -1,0 +1,49 @@
+- **Development Approach - User Preferences:**
+
+  - **Stepwise Development**: Always proceed step-by-step, complete current phase before moving to next
+  - **No Premature Frontend**: Don't jump to frontend setup unless explicitly requested
+  - **Complete Backend First**: Finish all backend functionality before frontend work
+  - **Ask for Permission**: When multiple approaches possible, give user clear options
+
+- **Task Management System Usage:**
+
+  - **❌ DON'T**: Force task-master system when it's not set up or requested
+  - **❌ DON'T**: Use task-master for simple, linear development workflows
+  - **✅ DO**: Continue with direct development when task system has issues
+  - **✅ DO**: Focus on actual code delivery over task organization
+
+- **Frontend Technology Choices:**
+
+  - **User Preference**: HTML + Tailwind CSS + Vanilla JavaScript with component breakdown
+  - **Reasoning**: Faster development than React for this project type
+  - **Always Offer Options**: Present both approaches (React vs Vanilla) and let user choose
+  - **Component Structure**: Break down even vanilla JS into reusable components
+
+- **Development Flow:**
+
+  ```
+  1. Complete current backend phase fully
+  2. Test and verify functionality
+  3. Ask user for next phase approval
+  4. If frontend needed, present technology options
+  5. Proceed only after user confirmation
+  ```
+
+- **Common Mistakes to Avoid:**
+
+  - Jumping ahead to frontend when backend isn't complete
+  - Using complex tooling when simple solutions work better
+  - Not giving user clear technology choice options
+  - Forcing task management systems when not beneficial
+  - Making assumptions about user preferences
+
+- **User Communication:**
+  - **Always Ask**: "Would you prefer React or HTML+Tailwind+Vanilla JS?"
+  - **Be Clear**: Explain benefits of each approach
+  - **Stay Focused**: Complete current work before suggesting next steps
+  - **Listen**: Pay attention to user feedback about pace and approach
+    description:
+    globs:
+    alwaysApply: false
+
+---

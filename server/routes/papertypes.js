@@ -53,7 +53,6 @@ router.get(
 
       const paperTypes = await PaperType.find(filter)
         .populate("createdBy", "firstName lastName username")
-        .populate("lastModifiedBy", "firstName lastName username")
         .sort({ category: 1, name: 1 })
         .skip(skip)
         .limit(limit);
@@ -119,9 +118,10 @@ router.get(
 // @access  Private (All authenticated users)
 router.get("/:id", authenticate, async (req, res) => {
   try {
-    const paperType = await PaperType.findById(req.params.id)
-      .populate("createdBy", "firstName lastName username")
-      .populate("lastModifiedBy", "firstName lastName username");
+    const paperType = await PaperType.findById(req.params.id).populate(
+      "createdBy",
+      "firstName lastName username"
+    );
 
     if (!paperType) {
       return res.status(404).json({
@@ -310,7 +310,6 @@ router.put(
       }
 
       const updates = { ...req.body };
-      updates.lastModifiedBy = req.user._id;
 
       // Check if name conflicts with other paper types
       if (updates.name) {
@@ -343,9 +342,7 @@ router.put(
         req.params.id,
         updates,
         { new: true, runValidators: true }
-      )
-        .populate("createdBy", "firstName lastName username")
-        .populate("lastModifiedBy", "firstName lastName username");
+      ).populate("createdBy", "firstName lastName username");
 
       if (!paperType) {
         return res.status(404).json({
@@ -515,7 +512,6 @@ router.post(
       };
 
       paperType.sizes.push(newSize);
-      paperType.lastModifiedBy = req.user._id;
       await paperType.save();
 
       res.json({
@@ -596,7 +592,6 @@ router.post(
 
       paperType.gsmOptions.push(newGsmOption);
       paperType.gsmOptions.sort((a, b) => a.gsm - b.gsm); // Sort by GSM ascending
-      paperType.lastModifiedBy = req.user._id;
       await paperType.save();
 
       res.json({
@@ -793,7 +788,6 @@ router.delete("/:id", authenticate, requireRole("admin"), async (req, res) => {
       req.params.id,
       {
         isActive: false,
-        lastModifiedBy: req.user._id,
       },
       { new: true }
     );
