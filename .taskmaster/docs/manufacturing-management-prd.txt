@@ -1,0 +1,239 @@
+<context>
+# Overview  
+The In-House Manufacturing Operations Management System is a real-time, multi-interface platform designed specifically for internal manufacturing operations. This system digitalizes and streamlines job creation, inventory management, and production tracking across machine stations, stock areas, and administrative oversight. The platform eliminates paper-based workflows and manual tracking systems by providing seamless real-time communication between internal staff including operators, machine technicians, stock managers, and administrators through dedicated tablet and web interfaces optimized for their specific roles.
+
+The system solves the critical operational problem of disconnected manual processes, lost paperwork, delayed updates, and lack of real-time visibility into job status and inventory levels. By creating a unified digital ecosystem where job updates, stock levels, and machine status flow instantly across all workstations, the platform reduces operational delays, eliminates manual errors, enables data-driven decision making, and significantly improves production efficiency and resource utilization.
+
+# Core Features  
+## Internal Job Creation System
+- **What it does**: Provides an internal web-based form for staff to create new manufacturing jobs with detailed specifications, quantities, deadlines, material requirements, and special instructions.
+- **Why it's important**: Eliminates handwritten job tickets and phone-based job assignments, creating standardized digital records from the start of each job lifecycle with immediate visibility across all stations.
+- **How it works**: Progressive web form with file upload capabilities for blueprints/specs, auto-generated job IDs, priority assignment, and immediate distribution to relevant machine stations and admin dashboard.
+
+## Machine Station Interface (Tablet-Based)
+- **What it does**: Displays assigned jobs to machine operators, allows real-time progress updates, enables recording of machine parameters, completion status, material consumption, and issue reporting directly from the production floor.
+- **Why it's important**: Provides machine operators with immediate visibility into their assigned work queue and enables real-time progress tracking without paper forms, reducing delays and improving accountability.
+- **How it works**: Touch-optimized tablet interface with status update buttons, time tracking, photo capture for work-in-progress documentation, and automatic sync with central system.
+
+## Stock Management Interface (Restock Station Tablet)
+- **What it does**: Enables stock personnel to update inventory levels, record material receipts, track usage by job, manage stock locations, and trigger reorder alerts when levels reach defined thresholds.
+- **Why it's important**: Maintains accurate inventory data in real-time, prevents stockouts, enables just-in-time material planning, and provides visibility into material consumption patterns by job type.
+- **How it works**: Manual entry system with quantity input, location tracking, batch/lot number recording, automatic integration with job material requirements, and real-time inventory balance updates.
+
+## Administrative Control Portal
+- **What it does**: Provides comprehensive oversight of all jobs, inventory status, pricing management, user administration, system configuration, and business intelligence through centralized dashboard with approval/rejection workflows.
+- **Why it's important**: Enables centralized operational control, pricing decisions, resource planning, and performance monitoring while maintaining complete visibility into all manufacturing activities.
+- **How it works**: Web-based dashboard with real-time analytics, job approval queues, pricing tools, user management, inventory reports, machine utilization metrics, and comprehensive operational reporting.
+
+## Real-Time Update Engine
+- **What it does**: Automatically synchronizes all data changes across all interfaces using WebSocket connections to ensure every station and user sees current information immediately without manual refresh.
+- **Why it's important**: Eliminates data inconsistencies, prevents outdated information-based decisions, and enables instant communication of status changes across the entire manufacturing operation.
+- **How it works**: Event-driven architecture with WebSocket connections, real-time notifications, automatic UI updates across all connected devices, and conflict resolution for concurrent updates.
+
+## Pricing Management System
+- **What it does**: Allows administrators to set dynamic pricing rules, manage cost calculations per job, track material costs, labor hours, overhead allocation, and profitability analysis for each manufacturing job.
+- **Why it's important**: Ensures accurate job costing, enables profitability tracking, supports pricing decisions for future similar jobs, and provides cost analysis for operational optimization.
+- **How it works**: Rule-based pricing engine with material cost integration, labor time estimation, overhead calculations, cost center allocation, and detailed profitability reporting per job.
+
+## AI Analysis and Intelligence System
+- **What it does**: Provides comprehensive AI-powered analytics and insights by analyzing operational data patterns, generating predictive reports, identifying bottlenecks, and offering optimization recommendations for improved efficiency and cost reduction.
+- **Why it's important**: Transforms raw operational data into actionable business intelligence, enables predictive decision-making, identifies hidden inefficiencies, and provides data-driven recommendations for continuous improvement and competitive advantage.
+- **How it works**: Machine learning algorithms analyze historical job data, inventory patterns, machine utilization, and operational metrics to generate automated reports, predictive analytics, trend identification, anomaly detection, and optimization suggestions with customizable dashboards and scheduled reporting.
+
+# User Experience  
+## User Personas
+- **Job Coordinator**: Internal staff responsible for creating and assigning manufacturing jobs, setting priorities, and initial job specification
+- **Machine Operator**: Production floor personnel operating manufacturing equipment, updating job progress, and reporting completion or issues
+- **Stock Manager**: Warehouse/inventory personnel responsible for material receiving, stock updates, inventory management, and reorder coordination
+- **Administrator**: Management personnel overseeing all operations, approving pricing, managing users, and monitoring overall system performance
+- **Plant Supervisor**: Operational supervisors requiring real-time visibility into job status, machine utilization, and production metrics
+
+## Key User Flows
+**Internal Job Creation Flow**: Job Coordinator accesses internal form → Fills job specifications and material requirements → Assigns priority and due date → Submits job → Job appears in admin queue → Admin approves → Job distributes to machine queue → Machine operators receive notification
+
+**Machine Operation Flow**: Operator views tablet for assigned jobs → Selects current job → Records material usage → Updates job progress/status → Records machine parameters → Captures work photos → Marks completion or reports issues → Status updates propagate to admin portal and stock system
+
+**Stock Management Flow**: Stock manager receives material delivery → Manually enters materials on restock tablet → Updates inventory quantities and locations → System checks current job material requirements → Generates alerts for low stock items → Updates material availability for job planning → Notifies relevant machine stations
+
+**Administrative Oversight Flow**: Admin reviews real-time dashboard → Monitors job progress and bottlenecks → Reviews pending approvals → Adjusts pricing or job priorities → Manages user permissions → Generates operational reports → Makes resource allocation decisions
+
+## UI/UX Considerations
+- **Industrial Touch Interface Design**: All tablet interfaces optimized for work gloves and industrial environments with large buttons, high contrast, and simple navigation
+- **Role-Based Interface Customization**: Each user type sees only relevant features and data, reducing complexity and improving focus
+- **Offline Capability**: Local data caching allows continued operation during network interruptions with automatic sync when connectivity returns
+- **AI-Powered Insights**: Contextual AI recommendations and insights displayed within relevant workflows for data-driven decision making
+- **Real-Time Visual Feedback**: Immediate visual confirmation of all actions with clear status indicators and progress tracking
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+- **Frontend Web Application**: React.js-based responsive web interface for administrative portal with real-time dashboard capabilities
+- **Mobile/Tablet PWA**: Progressive Web App optimized for tablet interfaces at machine stations and stock areas with offline functionality
+- **REST API Server**: Node.js/Express.js backend providing all business logic, data operations, and real-time communication coordination
+- **Real-Time Communication Layer**: Socket.io WebSocket implementation for instant updates across all connected devices and interfaces
+- **Database Layer**: MongoDB for flexible document storage with collections for jobs, inventory, users, and system logs
+- **AI Analytics Engine**: Python-based machine learning service for data analysis, pattern recognition, predictive analytics, and automated report generation
+- **File Storage System**: Local or cloud-based storage for job documents, photos, blueprints, and system assets
+- **Authentication Service**: JWT-based authentication with role-based access control (RBAC) for internal user management
+
+## Data Models (MongoDB Collections)
+**Jobs Collection**: { _id, jobId, title, description, status, priority, createdDate, dueDate, specifications, assignedMachine, pricingStatus, totalCost, materials[], progress[], photos[], aiInsights[] }
+**Inventory Collection**: { _id, itemCode, itemName, currentQuantity, minThreshold, maxCapacity, location, lastUpdated, supplierInfo, transactions[], usagePatterns, aiPredictions }
+**Users Collection**: { _id, username, email, role, permissions, lastLogin, createdDate, activeStatus, assignedStations[], performanceMetrics }
+**MachineUpdates Collection**: { _id, jobId, machineId, operatorId, statusChange, timestamp, notes, photos[], materialUsed[], efficiencyMetrics }
+**StockTransactions Collection**: { _id, itemId, transactionType, quantityChange, operatorId, timestamp, jobId, location }
+**AIAnalytics Collection**: { _id, analysisType, dataSource, insights[], predictions[], recommendations[], generatedDate, reportId }
+
+## APIs and Integrations
+- **Job Management API**: CRUD operations for complete job lifecycle management from creation to completion
+- **Inventory API**: Stock level tracking, material requirements calculation, reorder management, and transaction logging
+- **User Management API**: Authentication, authorization, role assignment, and user activity tracking
+- **Real-Time Notification API**: WebSocket-based instant alerts, status updates, and cross-station messaging
+- **Reporting API**: Business intelligence, operational analytics, cost analysis, and performance metrics
+- **AI Analytics API**: Machine learning insights, predictive analytics, trend analysis, and optimization recommendations
+- **File Management API**: Document upload, image storage, file retrieval, and asset management
+
+## Infrastructure Requirements
+- **Development Environment**: Docker containers for consistent development with MongoDB, Node.js, and React services
+- **Production Deployment**: On-premise or cloud hosting with auto-scaling Node.js application servers
+- **Database**: MongoDB instance with automated backups, replica sets for high availability, and proper indexing
+- **Load Balancing**: Nginx reverse proxy for handling multiple concurrent tablet connections
+- **SSL/TLS**: End-to-end encryption for all data transmission and WebSocket connections
+- **Monitoring**: Application performance monitoring, error tracking, uptime monitoring, and user activity logging
+
+# Development Roadmap  
+## Phase 1: MVP Core System (Essential Functionality)
+**Scope**: Basic job tracking system to replace manual processes immediately
+- Internal job creation form with basic specifications and file upload
+- Simple admin portal for job approval, rejection, and basic oversight
+- Basic machine tablet interface for status updates and progress tracking
+- Core MongoDB schema and REST API framework
+- User authentication system with role-based permissions
+- Real-time WebSocket communication for status updates
+- Basic inventory tracking without full stock management features
+- Simple dashboard showing active jobs and their current status
+
+## Phase 2: Complete Operational System (Full Feature Implementation)
+**Scope**: Comprehensive system with all planned functionality for daily operations
+- Advanced admin dashboard with analytics, reporting, and comprehensive job management
+- Full-featured stock management tablet interface with manual data entry optimization
+- Complete pricing management system with cost calculation and profitability tracking
+- Advanced machine interface with photo capture, material tracking, and detailed progress reporting
+- AI analytics engine with basic predictive insights and operational recommendations
+- Comprehensive notification system with real-time alerts and status change notifications
+- File management system for job documents, work photos, and specification storage
+- Mobile PWA optimization with offline capabilities for uninterrupted operation
+
+## Phase 3: Advanced Analytics and Optimization (Intelligence Layer)
+**Scope**: Data-driven insights and operational optimization capabilities
+- Advanced AI-powered business intelligence dashboard with predictive analytics and trend analysis
+- Machine learning-based automated reorder point calculations using historical usage patterns and seasonality
+- Advanced AI algorithms for job time estimation, resource optimization, and bottleneck prediction
+- AI-driven custom reporting tools with natural language query capabilities and automated insights generation
+- Intelligent workflow automation with AI-powered conditional logic and smart approval routing
+- Real-time performance monitoring with AI anomaly detection for machine utilization and operator efficiency
+- Predictive maintenance recommendations based on machine usage patterns and historical data
+- Integration APIs for potential future ERP or accounting system connections
+
+## Phase 4: Enterprise-Scale Features (Advanced Capabilities)
+**Scope**: Scaling features for larger operations and advanced management
+- Multi-facility support with centralized administration and facility-specific controls
+- Advanced user hierarchy with delegation capabilities and department-based access control
+- Comprehensive audit trails and compliance reporting for quality management systems
+- Advanced security features including two-factor authentication and session management
+- Backup and disaster recovery systems with automated failover capabilities
+- API ecosystem for third-party integrations and custom extensions
+- White-label customization capabilities for different operational requirements
+
+# Logical Dependency Chain
+## Foundation Layer (Critical First Phase)
+**Database Schema and MongoDB Setup**: Establish collections, indexes, and data relationships before any application development begins. This includes user authentication collections, basic job structure, and inventory framework.
+
+**Authentication and Authorization Framework**: Implement JWT-based user management with role-based permissions system. Required before any interface development since all features depend on user access control.
+
+**Basic API Framework**: Create RESTful API structure with Express.js to support all frontend interfaces. Essential foundation for all data operations and business logic.
+
+**React Admin Portal Shell**: Basic web application framework to provide immediate administrative interface for system management and job oversight.
+
+## Core Functionality Layer (Essential User Value)
+**Internal Job Creation System**: Implement job form and basic management first as this provides immediate value and demonstrates system capability to stakeholders.
+
+**Real-Time Communication Setup**: WebSocket implementation for live updates across all interfaces. Critical for multi-user coordination and system responsiveness.
+
+**Basic Machine Interface**: Simple tablet interface for status updates to enable operator interaction and progress tracking immediately.
+
+**Admin Dashboard Core Features**: Job approval, rejection, and basic oversight capabilities to provide administrative control over the job workflow.
+
+## Enhanced Features Layer (Complete Operational Capability)
+**Stock Management System**: Full inventory tracking builds upon job system foundation and requires integration with job material requirements.
+
+**AI Analytics Engine**: Data analysis and predictive insights require substantial operational data from jobs, inventory, and machine operations.
+
+**Advanced Machine Interface**: Photo capture, detailed progress tracking, and material consumption recording for complete job documentation.
+
+**Pricing Management System**: Cost calculation and profitability tracking requires job completion data and material usage patterns.
+
+## Optimization and Intelligence Layer (Advanced Value)
+**Advanced AI Analytics and Reporting**: Machine learning-powered business intelligence features requiring substantial operational data accumulation and pattern recognition.
+
+**Predictive Intelligence Systems**: AI algorithms for forecasting job completion times, inventory needs, and operational bottlenecks based on historical patterns.
+
+**PWA Features and Offline Capabilities**: Enhanced mobile experience with offline functionality for continued operation during network issues.
+
+**Performance Optimization**: Database indexing, caching implementation, and scalability improvements based on actual usage patterns.
+
+**Integration Framework**: APIs for future system connections and extensibility based on operational requirements.
+
+# Risks and Mitigations  
+## Technical Challenges
+**Risk**: MongoDB performance degradation under high concurrent write operations from multiple tablet stations
+**Mitigation**: Implement proper indexing strategy, connection pooling, write concern optimization, and consider MongoDB sharding for scale. Use read preferences for reporting queries.
+
+**Risk**: Real-time synchronization complexity across heterogeneous devices and network conditions
+**Mitigation**: Implement robust WebSocket error handling, automatic reconnection logic, message queuing for offline scenarios, and gradual data consistency patterns.
+
+**Risk**: Tablet interface reliability in harsh industrial environments with potential connectivity issues
+**Mitigation**: Design Progressive Web App with comprehensive offline capabilities, implement local storage with sync queues, and select industrial-grade tablet hardware.
+
+## MVP Development Focus
+**Risk**: Feature scope creep preventing timely delivery of core functionality
+**Mitigation**: Strictly enforce MVP boundaries focusing on essential job flow: creation → approval → machine assignment → progress tracking → completion. Defer advanced features to later phases.
+
+**Risk**: Over-engineering initial system architecture leading to delayed deployment
+**Mitigation**: Start with simple, proven solutions (basic React components, standard MongoDB operations, straightforward API endpoints) and refactor based on actual usage requirements.
+
+**Risk**: User interface complexity causing adoption resistance from operators
+**Mitigation**: Design with operator input from day one, implement progressive disclosure of features, provide extensive hands-on training, and maintain parallel paper systems during transition period.
+
+## Resource and Operational Constraints
+**Risk**: Limited internal testing resources for multiple device types and industrial use cases
+**Mitigation**: Implement comprehensive automated testing suite, conduct extensive user acceptance testing with actual operators, and plan gradual rollout with pilot stations.
+
+**Risk**: Database migration and data integrity concerns during system transition
+**Mitigation**: Design robust data import tools, implement comprehensive backup strategies, plan parallel system operation period, and establish rollback procedures.
+
+**Risk**: Network infrastructure limitations affecting real-time performance
+**Mitigation**: Optimize for low-bandwidth scenarios, implement efficient data serialization, use delta updates instead of full refreshes, and provide network monitoring tools.
+
+# Appendix  
+## Research Findings from Manufacturing System Analysis
+**Real-Time Updates Critical**: Manufacturing environments require immediate status visibility as delays cascade through production chains causing significant operational impact and cost overruns.
+
+**Touch-First Interface Design**: Shop floor adoption heavily dependent on intuitive touch interfaces optimized for industrial environments, work gloves, and quick interaction patterns.
+
+**Offline Capability Essential**: Network interruptions common in manufacturing environments, requiring robust offline functionality with automatic synchronization capabilities.
+
+**Role-Based Security Important**: Different operational roles require distinct access levels and interface configurations to maintain security and workflow efficiency.
+
+**MongoDB Flexibility Advantageous**: Document-based storage ideal for evolving job specifications, varied inventory attributes, and flexible reporting requirements without rigid schema constraints.
+
+**AI Analytics Integration Essential**: Python-based machine learning services enable predictive insights, pattern recognition, and optimization recommendations for operational efficiency.
+
+## Technical Specifications and Requirements
+**Target Performance**: Sub-2-second response times for all user interactions, sub-500ms for real-time updates, support for 50+ concurrent tablet connections
+**Data Retention**: 5+ years of operational data with efficient archival strategies and historical reporting capabilities
+**Availability Requirements**: 99.5% uptime during operational hours with planned maintenance windows and automatic failover capabilities
+**Security Standards**: HTTPS enforcement, strong password policies, session timeout management, comprehensive audit logging, and data encryption at rest
+**Device Support**: Modern tablet browsers with PWA capabilities, barcode camera integration, and optimized touch interfaces for 10+ inch displays
+**Scalability Planning**: Horizontal scaling architecture supporting facility expansion, increased user load, and enhanced feature requirements without system redesign
+</PRD> 

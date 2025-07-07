@@ -1,0 +1,360 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Database Setup and Schema Design",
+        "description": "Set up MongoDB database with all required collections for jobs, inventory, users, and analytics",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Design and implement MongoDB collections for Jobs, Inventory, Users, MachineUpdates, StockTransactions, and AIAnalytics. Include proper indexing, validation rules, and relationships between collections.",
+        "testStrategy": "Verify all collections are created with proper schemas, test data insertion and retrieval, validate relationships between collections",
+        "subtasks": [
+          {
+            "id": "1.1",
+            "title": "Create Customer/Party Model",
+            "description": "Implement customer management for job form basic info section",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "1.2",
+            "title": "Create PaperType and PaperSize Models",
+            "description": "Models for paper selection dropdowns with GSM integration",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "1.3",
+            "title": "Update Job Model for 4-Section Form",
+            "description": "Enhance Job model for basic info, job details, cost calculation, review sections",
+            "status": "pending",
+            "dependencies": ["1.1", "1.2"]
+          },
+          {
+            "id": "1.4",
+            "title": "Create Stock/Inventory Model",
+            "description": "Paper stock management with party, type, size, GSM, quantity, units",
+            "status": "pending",
+            "dependencies": ["1.1", "1.2"]
+          },
+          {
+            "id": "1.5",
+            "title": "Create User and Machine Models",
+            "description": "User roles and machine assignment models",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "1.6",
+            "title": "Database Connection and Seeding",
+            "description": "Setup connection, initial data, GSM values, standard paper sizes",
+            "status": "pending",
+            "dependencies": ["1.1", "1.2", "1.3", "1.4", "1.5"]
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "title": "Authentication and Authorization System",
+        "description": "Implement JWT-based authentication with role-based access control for internal users",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": ["1"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create authentication middleware, user registration/login endpoints, JWT token generation and validation, and role-based permission system for Job Coordinator, Machine Operator, Stock Manager, Administrator, and Plant Supervisor roles.",
+        "testStrategy": "Test user registration, login, token validation, role-based access restrictions, and session management",
+        "subtasks": [
+          {
+            "id": "2.1",
+            "title": "JWT Token Service",
+            "description": "Create JWT generation, validation, and refresh token functionality",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "2.2",
+            "title": "Authentication Middleware",
+            "description": "Implement middleware for protecting routes and validating tokens",
+            "status": "pending",
+            "dependencies": ["2.1"]
+          },
+          {
+            "id": "2.3",
+            "title": "Role-Based Access Control",
+            "description": "Create permission system for different user roles",
+            "status": "pending",
+            "dependencies": ["2.1"]
+          },
+          {
+            "id": "2.4",
+            "title": "User Registration and Login API",
+            "description": "Create endpoints for user registration, login, and profile management",
+            "status": "pending",
+            "dependencies": ["2.1", "2.2", "2.3"]
+          }
+        ]
+      },
+      {
+        "id": "3",
+        "title": "Backend API Framework",
+        "description": "Set up Node.js/Express.js REST API server with core routing and middleware",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": ["1", "2"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create Express.js server with middleware for CORS, body parsing, authentication, error handling, and logging. Set up API routing structure for jobs, inventory, users, and analytics endpoints.",
+        "testStrategy": "Test API endpoints respond correctly, middleware functions properly, error handling works, and authentication is enforced",
+        "subtasks": [
+          {
+            "id": "3.1",
+            "title": "Express Server Setup",
+            "description": "Configure Express server with basic middleware (CORS, body parser, etc.)",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "3.2",
+            "title": "Error Handling Middleware",
+            "description": "Create global error handling and logging middleware",
+            "status": "pending",
+            "dependencies": ["3.1"]
+          },
+          {
+            "id": "3.3",
+            "title": "API Route Structure",
+            "description": "Set up route organization for jobs, inventory, users, customers endpoints",
+            "status": "pending",
+            "dependencies": ["3.1"]
+          },
+          {
+            "id": "3.4",
+            "title": "Request Validation",
+            "description": "Implement input validation and sanitization for all endpoints",
+            "status": "pending",
+            "dependencies": ["3.3"]
+          }
+        ]
+      },
+      {
+        "id": "4",
+        "title": "Real-Time Communication Layer",
+        "description": "Implement Socket.io WebSocket connections for real-time updates across all interfaces",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": ["3"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Set up Socket.io server for real-time communication, implement event handlers for job status updates, inventory changes, and notifications. Create client-side connection management with automatic reconnection.",
+        "testStrategy": "Test real-time updates across multiple connected clients, verify message delivery, test connection recovery after network interruption",
+        "subtasks": [
+          {
+            "id": "4.1",
+            "title": "Socket.io Server Setup",
+            "description": "Configure Socket.io server with authentication integration",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "4.2",
+            "title": "Real-time Event Handlers",
+            "description": "Create events for job updates, inventory changes, notifications",
+            "status": "pending",
+            "dependencies": ["4.1"]
+          },
+          {
+            "id": "4.3",
+            "title": "Room Management",
+            "description": "Implement user rooms for targeted updates (admin, machine operators, etc.)",
+            "status": "pending",
+            "dependencies": ["4.1"]
+          },
+          {
+            "id": "4.4",
+            "title": "Client Connection Management",
+            "description": "Handle client connections, disconnections, and automatic reconnection",
+            "status": "pending",
+            "dependencies": ["4.1", "4.2"]
+          }
+        ]
+      },
+      {
+        "id": "5",
+        "title": "Job Management API and Core Logic",
+        "description": "Create CRUD operations for job lifecycle management from creation to completion",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": ["3", "4"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Implement job creation, approval workflow, assignment to machines, progress tracking, status updates, and completion handling. Include job priority management and dependency tracking.",
+        "testStrategy": "Test job creation, approval process, status updates, progress tracking, and completion workflow end-to-end",
+        "subtasks": [
+          {
+            "id": "5.1",
+            "title": "Job Creation API",
+            "description": "4-section job form: basic info, job details, cost calculation, review",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "5.2",
+            "title": "Job Approval Workflow",
+            "description": "Admin approval/rejection/modification with pricing control",
+            "status": "pending",
+            "dependencies": ["5.1"]
+          },
+          {
+            "id": "5.3",
+            "title": "Machine Assignment Logic",
+            "description": "Assign jobs to Machine 1 or 2 with scheduling",
+            "status": "pending",
+            "dependencies": ["5.1"]
+          },
+          {
+            "id": "5.4",
+            "title": "Job Progress Tracking",
+            "description": "Real-time status updates and progress monitoring",
+            "status": "pending",
+            "dependencies": ["5.2", "5.3"]
+          },
+          {
+            "id": "5.5",
+            "title": "Cost Calculation Engine",
+            "description": "Auto-calculate printing cost, plate price, UV coating, baking costs",
+            "status": "pending",
+            "dependencies": ["5.1"]
+          }
+        ]
+      },
+      {
+        "id": "6",
+        "title": "Inventory Management API",
+        "description": "Implement stock level tracking, material requirements, and transaction logging",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": ["3", "5"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create inventory CRUD operations, stock level monitoring, automatic reorder alerts, material consumption tracking by job, and inventory transaction history logging.",
+        "testStrategy": "Test inventory updates, stock level alerts, material allocation to jobs, and transaction logging accuracy",
+        "subtasks": [
+          {
+            "id": "6.1",
+            "title": "Stock Entry API",
+            "description": "Create paper stock form: party, type, size, GSM, quantity, units",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "6.2",
+            "title": "Stock Level Monitoring",
+            "description": "Track inventory levels with automatic alerts for reordering",
+            "status": "pending",
+            "dependencies": ["6.1"]
+          },
+          {
+            "id": "6.3",
+            "title": "Material Allocation",
+            "description": "Reserve and allocate materials for specific jobs",
+            "status": "pending",
+            "dependencies": ["6.1"]
+          },
+          {
+            "id": "6.4",
+            "title": "Transaction History",
+            "description": "Log all stock movements and usage tracking",
+            "status": "pending",
+            "dependencies": ["6.1"]
+          },
+          {
+            "id": "6.5",
+            "title": "Paper Provided by Party",
+            "description": "Handle customer-provided paper tracking and management",
+            "status": "pending",
+            "dependencies": ["6.1"]
+          }
+        ]
+      },
+      {
+        "id": "7",
+        "title": "Admin Web Portal Frontend",
+        "description": "Build React.js admin dashboard with job management, pricing control, and user management",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": ["5", "6"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create responsive React.js dashboard with job queue management, approval workflows, pricing management, user administration, real-time status monitoring, and comprehensive reporting interface.",
+        "testStrategy": "Test all admin functions, responsive design, real-time updates, and user interface usability",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "Machine Station Tablet Interface",
+        "description": "Build PWA tablet interface for machine operators with job tracking and progress updates",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": ["5", "4"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create touch-optimized PWA for tablets with job queue display, status update controls, progress tracking, photo capture functionality, and offline capability with sync.",
+        "testStrategy": "Test tablet interface usability, offline functionality, photo capture, status updates, and sync when reconnected",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Stock Management Tablet Interface",
+        "description": "Build tablet interface for stock management with inventory updates and location tracking",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": ["6", "4"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create tablet interface for inventory management with manual entry forms, stock level updates, location tracking, reorder management, and integration with job material requirements.",
+        "testStrategy": "Test inventory entry, stock updates, location management, and integration with job requirements",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Pricing Management System",
+        "description": "Implement dynamic pricing rules, cost calculations, and profitability analysis",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": ["5", "6"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Create pricing engine with material cost integration, labor time estimation, overhead calculations, cost center allocation, and detailed profitability reporting per job.",
+        "testStrategy": "Test pricing calculations, cost tracking accuracy, profitability analysis, and pricing rule modifications",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "AI Analytics Engine",
+        "description": "Build Python-based machine learning service for data analysis and predictive insights",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": ["5", "6", "10"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Develop AI service for analyzing operational data patterns, generating predictive reports, identifying bottlenecks, and providing optimization recommendations using machine learning algorithms.",
+        "testStrategy": "Test data analysis accuracy, prediction quality, report generation, and optimization recommendation relevance",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "System Integration and Deployment",
+        "description": "Deploy complete system with monitoring, security, and production configuration",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": ["7", "8", "9", "10", "11"],
+        "createdDate": "2025-01-27T10:00:00.000Z",
+        "details": "Set up production environment with Docker containers, configure monitoring and logging, implement security measures, SSL certificates, and create deployment scripts for the complete system.",
+        "testStrategy": "Test full system deployment, security measures, monitoring functionality, and end-to-end system integration",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "createdDate": "2025-01-27T10:00:00.000Z",
+      "lastModified": "2025-01-27T10:00:00.000Z",
+      "totalTasks": 12,
+      "projectName": "Manufacturing Operations Management System",
+      "description": "Real-time manufacturing job tracking and inventory management system"
+    }
+  }
+}
