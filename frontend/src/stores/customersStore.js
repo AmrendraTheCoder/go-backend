@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { apiClient } from "../services/apiClient";
+import socketService from "../services/socketService";
 
 export const useCustomersStore = create((set, get) => ({
   customers: [],
@@ -241,4 +242,51 @@ export const useCustomersStore = create((set, get) => ({
         totalReceivable: 0,
       },
     }),
+
+  // Real-time socket event handlers
+  initializeSocketListeners: () => {
+    // Customer created event
+    socketService.subscribe("customer:created", (customer) => {
+      const customers = [...get().customers, customer];
+      set({ customers });
+      get().calculateStats();
+    });
+
+    // Customer updated event
+    socketService.subscribe("customer:updated", (updatedCustomer) => {
+      const customers = get().customers.map((customer) =>
+        customer._id === updatedCustomer._id
+          ? { ...customer, ...updatedCustomer }
+          : customer
+      );
+      set({ customers });
+      get().calculateStats();
+
+      // Update selected customer if it's the one being updated
+      if (get().selectedCustomer?._id === updatedCustomer._id) {
+        set({
+          selectedCustomer: { ...get().selectedCustomer, ...updatedCustomer },
+        });
+      }
+    });
+
+    // Customer deleted event
+    socketService.subscribe("customer:deleted", (customerData) => {
+      const customers = get().customers.filter(
+        (customer) => customer._id !== customerData.customerId
+      );
+      set({ customers });
+      get().calculateStats();
+
+      // Clear selected customer if it was deleted
+      if (get().selectedCustomer?._id === customerData.customerId) {
+        set({ selectedCustomer: null });
+      }
+    });
+  },
+
+  // Clean up socket listeners
+  cleanupSocketListeners: () => {
+    // This will be handled by the socketService when it disconnects
+  },
 }));

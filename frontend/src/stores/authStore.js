@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiClient } from "../services/apiClient";
+import socketService from "../services/socketService";
 
 export const useAuthStore = create(
   persist(
@@ -30,6 +31,9 @@ export const useAuthStore = create(
             "Authorization"
           ] = `Bearer ${token}`;
 
+          // Connect to socket service
+          socketService.connect();
+
           return { success: true };
         } catch (error) {
           const errorMessage = error.response?.data?.message || "Login failed";
@@ -53,18 +57,23 @@ export const useAuthStore = create(
         });
         // Remove token from API client
         delete apiClient.defaults.headers.common["Authorization"];
+
+        // Disconnect socket service
+        socketService.disconnect();
       },
 
       clearError: () => set({ error: null }),
 
       // Initialize auth state from stored token
       initialize: () => {
-        const { token } = get();
-        if (token) {
+        const { token, isAuthenticated } = get();
+        if (token && isAuthenticated) {
           apiClient.defaults.headers.common[
             "Authorization"
           ] = `Bearer ${token}`;
-          // Optionally verify token validity here
+
+          // Connect to socket service for persisted sessions
+          socketService.connect();
         }
       },
     }),

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { apiClient } from "../services/apiClient";
+import socketService from "../services/socketService";
 
 export const useJobsStore = create((set, get) => ({
   jobs: [],
@@ -227,4 +228,72 @@ export const useJobsStore = create((set, get) => ({
         rejected: 0,
       },
     }),
+
+  // Real-time socket event handlers
+  initializeSocketListeners: () => {
+    // Job created event
+    socketService.subscribe("job:created", (job) => {
+      const jobs = [...get().jobs, job];
+      set({ jobs });
+      get().calculateStats();
+    });
+
+    // Job updated event
+    socketService.subscribe("job:updated", (updatedJob) => {
+      const jobs = get().jobs.map((job) =>
+        job._id === updatedJob._id ? { ...job, ...updatedJob } : job
+      );
+      set({ jobs });
+      get().calculateStats();
+
+      // Update selected job if it's the one being updated
+      if (get().selectedJob?._id === updatedJob._id) {
+        set({ selectedJob: { ...get().selectedJob, ...updatedJob } });
+      }
+    });
+
+    // Job approved event
+    socketService.subscribe("job:approved", (jobData) => {
+      const jobs = get().jobs.map((job) =>
+        job._id === jobData.jobId
+          ? { ...job, status: "approved", approvedAt: jobData.approvedAt }
+          : job
+      );
+      set({ jobs });
+      get().calculateStats();
+    });
+
+    // Job rejected event
+    socketService.subscribe("job:rejected", (jobData) => {
+      const jobs = get().jobs.map((job) =>
+        job._id === jobData.jobId
+          ? {
+              ...job,
+              status: "rejected",
+              rejectedAt: jobData.rejectedAt,
+              rejectionReason: jobData.reason,
+            }
+          : job
+      );
+      set({ jobs });
+      get().calculateStats();
+    });
+
+    // Job deleted event
+    socketService.subscribe("job:deleted", (jobData) => {
+      const jobs = get().jobs.filter((job) => job._id !== jobData.jobId);
+      set({ jobs });
+      get().calculateStats();
+
+      // Clear selected job if it was deleted
+      if (get().selectedJob?._id === jobData.jobId) {
+        set({ selectedJob: null });
+      }
+    });
+  },
+
+  // Clean up socket listeners
+  cleanupSocketListeners: () => {
+    // This will be handled by the socketService when it disconnects
+  },
 }));

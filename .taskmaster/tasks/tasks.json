@@ -279,7 +279,7 @@
         "id": "7",
         "title": "Admin Web Portal Frontend",
         "description": "Build React.js admin dashboard with job management, pricing control, and user management",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": ["5", "6"],
         "createdDate": "2025-01-27T10:00:00.000Z",
@@ -318,7 +318,7 @@
             "id": "7.5",
             "title": "Real-time Updates Integration",
             "description": "Socket.io client for live updates across admin panels",
-            "status": "pending",
+            "status": "done",
             "dependencies": ["7.2", "7.3", "7.4"]
           }
         ]
@@ -327,7 +327,7 @@
         "id": "8",
         "title": "Machine Station Tablet Interface",
         "description": "Build PWA tablet interface for machine operators with job tracking and progress updates",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "medium",
         "dependencies": ["5", "4"],
         "createdDate": "2025-01-27T10:00:00.000Z",
@@ -338,7 +338,7 @@
             "id": "8.1",
             "title": "PWA Setup",
             "description": "Configure PWA with offline capability and tablet optimization",
-            "status": "pending",
+            "status": "done",
             "dependencies": []
           },
           {
