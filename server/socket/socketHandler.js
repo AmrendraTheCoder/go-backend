@@ -28,10 +28,10 @@ class SocketHandler {
           return next(new Error("Authentication token required"));
         }
 
-        const decoded = jwt.verify(token, config.security.jwtSecret);
-        socket.userId = decoded.id;
+        const decoded = jwt.verify(token, config.auth.jwtSecret);
+        socket.userId = decoded.userId; // Match JWT payload field
         socket.userRole = decoded.role;
-        socket.userName = decoded.name;
+        socket.userName = decoded.username; // Match JWT payload field
 
         next();
       } catch (error) {

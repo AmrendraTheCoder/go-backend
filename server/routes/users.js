@@ -75,8 +75,6 @@ router.get(
       const users = await User.find(filter)
         .select("-password -tokenBlacklist -loginAttempts")
         .populate("assignedMachines", "name machineId currentStatus")
-        .populate("createdBy", "firstName lastName username")
-        .populate("lastModifiedBy", "firstName lastName username")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
@@ -132,9 +130,7 @@ router.get("/:id", authenticate, async (req, res) => {
 
     const user = await User.findById(id)
       .select("-password -tokenBlacklist")
-      .populate("assignedMachines", "name machineId currentStatus location")
-      .populate("createdBy", "firstName lastName username")
-      .populate("lastModifiedBy", "firstName lastName username");
+      .populate("assignedMachines", "name machineId currentStatus location");
 
     if (!user) {
       return res.status(404).json({
@@ -233,9 +229,6 @@ router.put(
         updates.emailVerified = false; // Require re-verification
       }
 
-      // Add audit fields
-      updates.lastModifiedBy = req.user._id;
-
       // Update user
       const updatedUser = await User.findByIdAndUpdate(id, updates, {
         new: true,
@@ -294,7 +287,6 @@ router.delete("/:id", authenticate, requireRole("admin"), async (req, res) => {
       id,
       {
         isActive: false,
-        lastModifiedBy: req.user._id,
       },
       { new: true }
     ).select("-password -tokenBlacklist -loginAttempts");
@@ -336,7 +328,6 @@ router.put(
         id,
         {
           isActive: true,
-          lastModifiedBy: req.user._id,
         },
         { new: true }
       ).select("-password -tokenBlacklist -loginAttempts");
@@ -410,7 +401,6 @@ router.put(
 
       // Update password
       user.password = newPassword;
-      user.lastModifiedBy = req.user._id;
       user.tokenBlacklist = []; // Clear all existing tokens
       user.tokenVersion = (user.tokenVersion || 0) + 1; // Invalidate all existing tokens
       await user.save();
@@ -471,7 +461,6 @@ router.put(
         id,
         {
           permissions,
-          lastModifiedBy: req.user._id,
         },
         { new: true, runValidators: true }
       ).select("-password -tokenBlacklist -loginAttempts");
@@ -547,7 +536,6 @@ router.put(
         id,
         {
           assignedMachines: machineIds,
-          lastModifiedBy: req.user._id,
         },
         { new: true, runValidators: true }
       )

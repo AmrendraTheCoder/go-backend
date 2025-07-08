@@ -14,19 +14,22 @@ const {
 
 const router = express.Router();
 
-// Rate limiting for auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
-  message: {
-    error:
-      "Too many authentication attempts from this IP, please try again later.",
-    code: "RATE_LIMIT_EXCEEDED",
-    retryAfter: 15 * 60, // seconds
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Rate limiting for auth endpoints - disabled in development
+const authLimiter =
+  config.server.nodeEnv === "development"
+    ? (req, res, next) => next() // No rate limiting in development
+    : rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 5, // Limit each IP to 5 requests per windowMs
+        message: {
+          error:
+            "Too many authentication attempts from this IP, please try again later.",
+          code: "RATE_LIMIT_EXCEEDED",
+          retryAfter: 15 * 60, // seconds
+        },
+        standardHeaders: true,
+        legacyHeaders: false,
+      });
 
 // Validation rules
 const registerValidation = [
@@ -338,9 +341,7 @@ router.get("/me", authenticate, async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
       .select("-password -tokenBlacklist -loginAttempts")
-      .populate("assignedMachines", "name machineId currentStatus location")
-      .populate("createdBy", "firstName lastName username")
-      .populate("lastModifiedBy", "firstName lastName username");
+      .populate("assignedMachines", "name machineId currentStatus location");
 
     res.json({
       message: "Profile retrieved successfully",
@@ -407,8 +408,6 @@ router.put(
         updateFields.emailVerified = false; // Require re-verification
       }
 
-      updateFields.lastModifiedBy = req.user._id;
-
       const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
         updateFields,
@@ -468,7 +467,6 @@ router.put(
 
       // Update password
       user.password = newPassword;
-      user.lastModifiedBy = req.user._id;
       await user.save();
 
       res.json({

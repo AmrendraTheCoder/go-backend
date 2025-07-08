@@ -15,11 +15,11 @@ const router = express.Router();
 
 // @route   GET /api/inventory
 // @desc    Get inventory items with filtering and pagination
-// @access  Private (Stock Manager, Admin, Manager)
+// @access  Private (Stock Manager, Admin, Manager, Operator)
 router.get(
   "/",
   authenticate,
-  requireRole("admin", "manager", "stock_manager"),
+  requireRole("admin", "manager", "stock_manager", "operator"),
   [
     query("page").optional().isInt({ min: 1 }),
     query("limit").optional().isInt({ min: 1, max: 100 }),
@@ -142,11 +142,11 @@ router.get(
 
 // @route   GET /api/inventory/:id
 // @desc    Get inventory item by ID
-// @access  Private (Stock Manager, Admin, Manager)
+// @access  Private (Stock Manager, Admin, Manager, Operator)
 router.get(
   "/:id",
   authenticate,
-  requireRole("admin", "manager", "stock_manager"),
+  requireRole("admin", "manager", "stock_manager", "operator"),
   async (req, res) => {
     try {
       const inventory = await Inventory.findById(req.params.id)

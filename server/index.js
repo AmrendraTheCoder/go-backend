@@ -20,7 +20,14 @@ const server = http.createServer(app);
 // Socket.io setup with enhanced configuration
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin:
+      config.server.nodeEnv === "development"
+        ? [
+            /^http:\/\/localhost:\d+$/,
+            /^http:\/\/127\.0\.0\.1:\d+$/,
+            /^http:\/\/0\.0\.0\.0:\d+$/,
+          ]
+        : ["http://localhost:3000", "http://localhost:3001"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -40,18 +47,35 @@ const realtimeEventHandlers = new RealtimeEventHandlers(socketHandler);
 app.use(helmet());
 app.use(compression());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.security.rateLimitWindowMs,
-  max: config.security.rateLimitMaxRequests,
-  message: "Too many requests from this IP, please try again later.",
-});
-app.use("/api/", limiter);
+// Rate limiting - disabled in development
+if (config.server.nodeEnv !== "development") {
+  const limiter = rateLimit({
+    windowMs: config.security.rateLimitWindowMs,
+    max: config.security.rateLimitMaxRequests,
+    message: "Too many requests from this IP, please try again later.",
+  });
+  app.use("/api/", limiter);
+}
 
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin:
+      config.server.nodeEnv === "development"
+        ? function (origin, callback) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+
+            // Allow all localhost, 127.0.0.1, and 0.0.0.0 with any port in development
+            if (
+              origin.match(/^http:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0):\d+$/)
+            ) {
+              return callback(null, true);
+            }
+
+            return callback(new Error("Not allowed by CORS"), false);
+          }
+        : ["http://localhost:3000", "http://localhost:3001"],
     credentials: true,
   })
 );
@@ -132,6 +156,36 @@ app.get("/health", async (req, res) => {
       timestamp: new Date().toISOString(),
       environment: config.server.nodeEnv,
       error: error.message,
+    });
+  }
+});
+
+// Dashboard stats endpoint
+app.get("/api/dashboard/stats", async (req, res) => {
+  try {
+    const stats = await dbConnection.getStats();
+
+    // Get basic counts for dashboard
+    const dashboardStats = {
+      totalJobs: stats.jobs || 0,
+      totalCustomers: stats.customers || 0,
+      totalInventoryItems: stats.inventory || 0,
+      totalUsers: stats.users || 0,
+      totalPaperTypes: stats.paperTypes || 0,
+      activeJobs: 0, // Could be enhanced to get actual active jobs count
+      pendingJobs: 0, // Could be enhanced to get actual pending jobs count
+      completedJobs: 0, // Could be enhanced to get actual completed jobs count
+      lowStockItems: 0, // Could be enhanced to get actual low stock count
+      timestamp: new Date().toISOString(),
+      serverStatus: "OK",
+    };
+
+    res.status(200).json(dashboardStats);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get dashboard statistics",
+      error: error.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });

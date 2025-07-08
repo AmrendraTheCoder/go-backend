@@ -46,8 +46,12 @@ const config = {
 
   // Security
   security: {
-    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    rateLimitWindowMs:
+      parseInt(process.env.RATE_LIMIT_WINDOW_MS) ||
+      (process.env.NODE_ENV === "development" ? 10000 : 900000), // 10 sec dev, 15 min prod
+    rateLimitMaxRequests:
+      parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) ||
+      (process.env.NODE_ENV === "development" ? 10000 : 100), // 10000 dev, 100 prod
   },
 };
 
