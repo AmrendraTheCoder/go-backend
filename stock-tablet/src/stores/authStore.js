@@ -1,192 +1,304 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { apiClient } from "../services/apiClient";
 import socketService from "../services/socketService";
 
-export const useAuthStore = create(
-  persist(
-    (set, get) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      error: null,
-      loading: false,
-      machineId: null, // Specific machine assignment
+const useAuthStore = create((set, get) => ({
+  // State
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+  isConnected: false,
+  connectionAttempts: 0,
+  lastConnectionAttempt: null,
 
-      // Login action - specialized for machine operators
-      login: async (credentials) => {
-        set({ loading: true, error: null });
+  // Available warehouses/locations
+  warehouses: [
+    { id: "warehouse-a", name: "Warehouse A", location: "Building A" },
+    { id: "warehouse-b", name: "Warehouse B", location: "Building B" },
+    { id: "quality-control", name: "Quality Control", location: "QC Lab" },
+    { id: "receiving", name: "Receiving Area", location: "Loading Dock" },
+    { id: "shipping", name: "Shipping Area", location: "Dispatch" },
+  ],
 
-        try {
-          const response = await apiClient.post("/auth/login", {
-            ...credentials,
-            deviceType: "machine_tablet",
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString(),
-          });
+  // Actions
+  setLoading: (loading) => set({ isLoading: loading }),
+  setError: (error) => set({ error }),
+  clearError: () => set({ error: null }),
+  setConnected: (connected) => set({ isConnected: connected }),
 
-          const { user, token, machineAssignment } = response.data;
+  // Initialize connection monitoring
+  initializeConnection: () => {
+    const { setConnected, incrementConnectionAttempts } = get();
 
-          // Verify user is a machine operator
-          if (user.role !== "machine_operator") {
-            throw new Error(
-              "Access denied. Machine operator credentials required."
-            );
-          }
+    // Monitor socket connection
+    socketService.on("connect", () => {
+      setConnected(true);
+      set({ connectionAttempts: 0 });
+      console.log("Stock tablet connected to server");
+    });
 
-          set({
-            user,
-            token,
-            isAuthenticated: true,
-            loading: false,
-            error: null,
-            machineId: machineAssignment?.machineId || null,
-          });
+    socketService.on("disconnect", () => {
+      setConnected(false);
+      incrementConnectionAttempts();
+      console.log("Stock tablet disconnected from server");
+    });
 
-          // Set token in API client for future requests
-          apiClient.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${token}`;
+    socketService.on("connect_error", (error) => {
+      setConnected(false);
+      incrementConnectionAttempts();
+      console.error("Stock tablet connection error:", error);
+    });
 
-          // Connect to socket service with machine context
-          socketService.connect(machineAssignment?.machineId);
+    // Initial connection attempt
+    socketService.connect();
+  },
 
-          return { success: true, machineAssignment };
-        } catch (error) {
-          const errorMessage =
-            error.response?.data?.message || error.message || "Login failed";
-          set({
-            loading: false,
-            error: errorMessage,
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            machineId: null,
-          });
-          return { success: false, error: errorMessage };
-        }
-      },
+  incrementConnectionAttempts: () => {
+    set((state) => ({
+      connectionAttempts: state.connectionAttempts + 1,
+      lastConnectionAttempt: new Date().toISOString(),
+    }));
+  },
 
-      // Logout action
-      logout: () => {
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          error: null,
-          machineId: null,
-        });
+  // Login for stock managers
+  login: async (credentials) => {
+    set({ isLoading: true, error: null });
 
-        // Remove token from API client
-        delete apiClient.defaults.headers.common["Authorization"];
+    try {
+      // Simulate API call for demo purposes
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Disconnect socket service
-        socketService.disconnect();
+      // For demo purposes, accept any credentials
+      const user = {
+        id: Date.now().toString(),
+        email: credentials.email,
+        name: credentials.email.split("@")[0],
+        warehouse: credentials.warehouse,
+        warehouseName:
+          get().warehouses.find((w) => w.id === credentials.warehouse)?.name ||
+          "Unknown",
+        userType: "stock-manager",
+        permissions: ["stock:read", "stock:write", "stock:adjust"],
+        loginTime: new Date().toISOString(),
+      };
 
-        // Clear any cached data
-        localStorage.removeItem("machine-tablet-cache");
-      },
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        isConnected: true,
+      });
 
-      // Update machine assignment
-      updateMachineAssignment: (machineId) => {
-        set({ machineId });
-        // Reconnect socket with new machine context
-        if (get().isAuthenticated) {
-          socketService.disconnect();
-          socketService.connect(machineId);
-        }
-      },
+      // Store in localStorage for persistence
+      localStorage.setItem("stockAuth", JSON.stringify(user));
 
-      // Clear error
-      clearError: () => set({ error: null }),
-
-      // Initialize auth state from stored token
-      initialize: () => {
-        const { token, isAuthenticated, user, machineId } = get();
-
-        if (token && isAuthenticated && user) {
-          // Verify token is still valid and user is machine operator
-          if (user.role === "machine_operator") {
-            apiClient.defaults.headers.common[
-              "Authorization"
-            ] = `Bearer ${token}`;
-
-            // Connect to socket service for persisted sessions
-            socketService.connect(machineId);
-
-            // Optionally verify token validity with server
-            get().verifyToken();
-          } else {
-            // Invalid role, logout
-            get().logout();
-          }
-        }
-      },
-
-      // Verify token validity
-      verifyToken: async () => {
-        try {
-          const response = await apiClient.get("/auth/verify");
-          const { user, machineAssignment } = response.data;
-
-          // Update user data and machine assignment
-          set({
-            user,
-            machineId: machineAssignment?.machineId || get().machineId,
-          });
-        } catch (error) {
-          console.warn("Token verification failed:", error);
-          // Token invalid, logout
-          get().logout();
-        }
-      },
-
-      // Update operator status (available, busy, break, etc.)
-      updateOperatorStatus: async (status) => {
-        try {
-          const response = await apiClient.patch("/auth/operator-status", {
-            status,
-          });
-          set({
-            user: {
-              ...get().user,
-              status: response.data.status,
-            },
-          });
-          return { success: true };
-        } catch (error) {
-          console.error("Failed to update operator status:", error);
-          return { success: false, error: error.message };
-        }
-      },
-
-      // Clock in/out functionality for shift tracking
-      clockInOut: async (action) => {
-        try {
-          const response = await apiClient.post("/auth/clock", {
-            action,
-            machineId: get().machineId,
-            timestamp: new Date().toISOString(),
-          });
-
-          const { user, shift } = response.data;
-          set({ user });
-
-          return { success: true, shift };
-        } catch (error) {
-          console.error("Clock action failed:", error);
-          return { success: false, error: error.message };
-        }
-      },
-    }),
-    {
-      name: "machine-tablet-auth",
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        isAuthenticated: state.isAuthenticated,
-        machineId: state.machineId,
-      }),
+      return { success: true, user };
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error.message || "Login failed",
+      });
+      return { success: false, error: error.message };
     }
-  )
-);
+  },
+
+  logout: async () => {
+    set({ isLoading: true });
+
+    try {
+      // Clear stored auth
+      localStorage.removeItem("stockAuth");
+
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+        isConnected: false,
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ isLoading: false, error: error.message });
+      return { success: false, error: error.message };
+    }
+  },
+
+  checkAuth: async () => {
+    set({ isLoading: true });
+
+    try {
+      // Check localStorage for existing auth
+      const storedAuth = localStorage.getItem("stockAuth");
+      if (storedAuth) {
+        const user = JSON.parse(storedAuth);
+        set({
+          user,
+          isAuthenticated: true,
+          isConnected: true,
+          isLoading: false,
+          error: null,
+        });
+        return { success: true, user };
+      }
+
+      set({ isLoading: false });
+      return { success: false, error: "No stored authentication" };
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error.message || "Authentication check failed",
+      });
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Connection management
+  setConnectionStatus: (status) => {
+    set({ isConnected: status });
+  },
+
+  resetConnectionAttempts: () => {
+    set({ connectionAttempts: 0, lastConnectionAttempt: null });
+  },
+
+  getConnectionStatus: () => {
+    const state = get();
+    if (state.isConnected) {
+      return {
+        status: "connected",
+        message: "Connected to server",
+        color: "text-green-600",
+      };
+    }
+
+    if (state.connectionAttempts > 0) {
+      return {
+        status: "reconnecting",
+        message: `Reconnecting... (attempt ${state.connectionAttempts})`,
+        color: "text-yellow-600",
+      };
+    }
+
+    return {
+      status: "disconnected",
+      message: "Disconnected from server",
+      color: "text-red-600",
+    };
+  },
+
+  // Manual reconnection attempt
+  reconnect: async () => {
+    const { isAuthenticated } = get();
+
+    if (!isAuthenticated) {
+      set({ error: "Please login first" });
+      return false;
+    }
+
+    try {
+      set({ error: null });
+      socketService.disconnect();
+
+      // Wait a moment before reconnecting
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      socketService.connect();
+      return true;
+    } catch (error) {
+      console.error("Reconnection error:", error);
+      set({ error: "Failed to reconnect to server" });
+      return false;
+    }
+  },
+
+  // Test connection
+  testConnection: async () => {
+    try {
+      set({ error: null });
+      const response = await apiClient.get("/api/health");
+      return {
+        success: true,
+        message: "Connection test successful",
+        data: response.data,
+      };
+    } catch (error) {
+      const message = error.response?.data?.message || "Connection test failed";
+      set({ error: message });
+      return {
+        success: false,
+        message,
+        error,
+      };
+    }
+  },
+
+  // Update user profile
+  updateProfile: async (updates) => {
+    const { setLoading, setError, user } = get();
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await apiClient.put("/api/auth/profile", updates);
+
+      const updatedUser = { ...user, ...response.data };
+
+      // Update stored user data
+      localStorage.setItem("stock_user", JSON.stringify(updatedUser));
+
+      set({ user: updatedUser });
+
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to update profile";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  },
+
+  // Change password
+  changePassword: async (currentPassword, newPassword) => {
+    const { setLoading, setError } = get();
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      await apiClient.post("/api/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
+
+      return { success: true, message: "Password changed successfully" };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to change password";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  },
+
+  // Reset store
+  reset: () => {
+    set({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+      isConnected: false,
+      connectionAttempts: 0,
+      lastConnectionAttempt: null,
+    });
+  },
+}));
+
+export { useAuthStore };

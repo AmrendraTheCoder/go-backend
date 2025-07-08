@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, Row, Col, Button, Tag, Space, Select, Statistic, message, Empty, Spin, Avatar } from 'antd';
-import { 
-  PlayCircleOutlined, 
-  PauseCircleOutlined, 
+import {
+  PlayCircleOutlined,
+  PauseCircleOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   SettingOutlined,
@@ -22,13 +22,13 @@ const { Option } = Select;
 const JobQueue = () => {
   const navigate = useNavigate();
   const { user, machineId, logout } = useAuthStore();
-  const { 
-    jobs, 
-    loading, 
-    error, 
-    stats, 
+  const {
+    jobs,
+    loading,
+    error,
+    stats,
     filters,
-    fetchMachineJobs, 
+    fetchMachineJobs,
     startJob,
     setFilters,
     getFilteredJobs,
@@ -119,17 +119,17 @@ const JobQueue = () => {
   const formatTime = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
   const filteredJobs = getFilteredJobs();
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="job-queue-container" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header Section */}
       <Card className="tablet-card" style={{ marginBottom: '20px' }}>
         <Row align="middle" justify="space-between">
@@ -162,14 +162,14 @@ const JobQueue = () => {
                   </>
                 )}
               </div>
-              
-              <Button 
-                icon={<SettingOutlined />} 
+
+              <Button
+                icon={<SettingOutlined />}
                 onClick={handleSettings}
                 size="large"
                 type="text"
               />
-              <Button 
+              <Button
                 onClick={handleLogout}
                 size="large"
                 danger
@@ -285,7 +285,7 @@ const JobQueue = () => {
             <Empty
               description={
                 <span style={{ fontSize: '18px' }}>
-                  {filters.status === 'all' && filters.priority === 'all' 
+                  {filters.status === 'all' && filters.priority === 'all'
                     ? 'No jobs assigned to this machine'
                     : 'No jobs match the current filters'
                   }
@@ -366,7 +366,7 @@ const JobQueue = () => {
                     </div>
                     <div className="job-card-detail">
                       <div className="job-card-detail-label">Priority</div>
-                      <div 
+                      <div
                         className="job-card-detail-value"
                         style={{ color: getPriorityColor(job.priority) }}
                       >

@@ -10,44 +10,63 @@ import Settings from './pages/Settings';
 import PWAPrompt from './components/PWAPrompt';
 import './App.css';
 
-// Tablet-optimized theme
-const tabletTheme = {
-  token: {
-    // Larger touch targets for tablets
-    controlHeight: 48,
-    fontSize: 16,
-    borderRadius: 8,
-    colorPrimary: '#1890ff',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif',
-  },
-  components: {
-    Button: {
-      controlHeight: 56, // Extra large touch targets
-      borderRadius: 12,
-      fontSize: 18,
-      fontWeight: 600,
+// Responsive theme that works for both tablets and laptops
+const getResponsiveTheme = () => {
+  const isTablet = window.innerWidth <= 1024;
+  const isMobile = window.innerWidth <= 767;
+
+  return {
+    token: {
+      // Responsive sizing based on screen size
+      controlHeight: isMobile ? 44 : isTablet ? 48 : 40,
+      fontSize: isMobile ? 14 : isTablet ? 16 : 14,
+      borderRadius: isMobile ? 6 : isTablet ? 8 : 6,
+      colorPrimary: '#1890ff',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif',
     },
-    Card: {
-      borderRadius: 16,
-      paddingLG: 32,
-    },
-    Input: {
-      controlHeight: 56,
-      borderRadius: 12,
-      fontSize: 18,
-    },
-    Table: {
-      borderRadius: 16,
-      cellPaddingBlock: 20,
-      cellPaddingInline: 24,
+    components: {
+      Button: {
+        // Responsive button sizing
+        controlHeight: isMobile ? 44 : isTablet ? 56 : 36,
+        borderRadius: isMobile ? 8 : isTablet ? 12 : 8,
+        fontSize: isMobile ? 16 : isTablet ? 18 : 14,
+        fontWeight: isTablet ? 600 : 500,
+      },
+      Card: {
+        borderRadius: isMobile ? 12 : isTablet ? 16 : 12,
+        paddingLG: isMobile ? 16 : isTablet ? 32 : 24,
+      },
+      Input: {
+        controlHeight: isMobile ? 44 : isTablet ? 56 : 36,
+        borderRadius: isMobile ? 8 : isTablet ? 12 : 8,
+        fontSize: isMobile ? 16 : isTablet ? 18 : 14,
+      },
+      Select: {
+        controlHeight: isMobile ? 44 : isTablet ? 56 : 36,
+        borderRadius: isMobile ? 8 : isTablet ? 12 : 8,
+        fontSize: isMobile ? 16 : isTablet ? 18 : 14,
+      },
+      Table: {
+        borderRadius: isMobile ? 12 : isTablet ? 16 : 12,
+        cellPaddingBlock: isMobile ? 12 : isTablet ? 20 : 16,
+        cellPaddingInline: isMobile ? 16 : isTablet ? 24 : 16,
+      },
+      Statistic: {
+        titleFontSize: isMobile ? 14 : isTablet ? 16 : 14,
+        contentFontSize: isMobile ? 20 : isTablet ? 28 : 24,
+      },
+      Space: {
+        size: isMobile ? 8 : isTablet ? 16 : 12,
+      }
     }
-  }
+  };
 };
 
 function App() {
   const { isAuthenticated, initialize, user } = useAuthStore();
   const jobStore = useJobStore();
   const [isInstallPromptDeferred, setIsInstallPromptDeferred] = useState(false);
+  const [theme, setTheme] = useState(getResponsiveTheme());
 
   useEffect(() => {
     // Initialize auth store
@@ -64,6 +83,13 @@ function App() {
       setIsInstallPromptDeferred(e);
     });
 
+    // Handle window resize for responsive theme
+    const handleResize = () => {
+      setTheme(getResponsiveTheme());
+    };
+
+    window.addEventListener('resize', handleResize);
+
     // Service worker registration handling
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -76,10 +102,15 @@ function App() {
           });
       });
     }
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [isAuthenticated, user, initialize, jobStore]);
 
   return (
-    <ConfigProvider theme={tabletTheme}>
+    <ConfigProvider theme={theme}>
       <AntApp>
         <div className="tablet-app">
           <Router>

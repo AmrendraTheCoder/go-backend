@@ -9,7 +9,7 @@ const config = {
 
   // Server Configuration
   server: {
-    port: process.env.PORT || 5002,
+    port: process.env.PORT || 3001,
     nodeEnv: process.env.NODE_ENV || "development",
   },
 

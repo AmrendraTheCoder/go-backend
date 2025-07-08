@@ -1,10 +1,9 @@
 #root {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
+/* Reset default Vite styles for better control */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -41,7 +40,10 @@
   color: #888;
 }
 
-/* Tablet App Global Styles */
+/* ============================================ */
+/* RESPONSIVE TABLET APP GLOBAL STYLES */
+/* ============================================ */
+
 .tablet-app {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -50,45 +52,140 @@
     Helvetica, Arial, sans-serif;
 }
 
-/* Tablet-specific layouts */
-@media (orientation: landscape) and (min-width: 768px) {
-  .tablet-app {
-    padding: 20px;
-  }
-}
+/* ============================================ */
+/* RESPONSIVE BREAKPOINTS */
+/* ============================================ */
 
-@media (orientation: portrait) and (max-width: 1024px) {
+/* Mobile Portrait */
+@media (max-width: 767px) {
   .tablet-app {
     padding: 10px;
   }
+
+  #root {
+    max-width: 100%;
+    padding: 0;
+  }
 }
 
-/* Touch-friendly elements */
+/* Tablet Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .tablet-app {
+    padding: 15px;
+  }
+
+  #root {
+    max-width: 100%;
+    padding: 1rem;
+  }
+}
+
+/* Tablet Landscape */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .tablet-app {
+    padding: 20px;
+  }
+
+  #root {
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+}
+
+/* Laptop/Desktop */
+@media (min-width: 1025px) {
+  .tablet-app {
+    padding: 30px;
+  }
+
+  #root {
+    max-width: 1400px;
+    padding: 2rem;
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1400px) {
+  .tablet-app {
+    padding: 40px;
+  }
+
+  #root {
+    max-width: 1600px;
+    padding: 3rem;
+  }
+}
+
+/* ============================================ */
+/* TOUCH-FRIENDLY ELEMENTS - RESPONSIVE */
+/* ============================================ */
+
 .touch-friendly {
-  min-height: 48px;
-  min-width: 48px;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-}
-
-.touch-friendly:active {
-  transform: scale(0.95);
   transition: transform 0.1s ease;
 }
 
-/* Card layouts for tablets */
+/* Touch targets for mobile/tablet */
+@media (max-width: 1024px) {
+  .touch-friendly {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  .touch-friendly:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Smaller targets for laptop/desktop with hover effects */
+@media (min-width: 1025px) {
+  .touch-friendly {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .touch-friendly:hover {
+    transform: scale(1.02);
+  }
+
+  .touch-friendly:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ============================================ */
+/* RESPONSIVE CARD LAYOUTS */
+/* ============================================ */
+
 .tablet-card {
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
   overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+/* Tablet cards */
+@media (max-width: 1024px) {
+  .tablet-card {
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Desktop cards - smaller radius, tighter spacing */
+@media (min-width: 1025px) {
+  .tablet-card {
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
 }
 
 .tablet-card.clickable {
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .tablet-card.clickable:hover {
@@ -101,7 +198,10 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Status indicators */
+/* ============================================ */
+/* STATUS AND PRIORITY INDICATORS */
+/* ============================================ */
+
 .status-indicator {
   display: inline-block;
   padding: 8px 16px;
@@ -110,6 +210,23 @@
   font-size: 14px;
   text-align: center;
   min-width: 80px;
+}
+
+/* Responsive font sizes */
+@media (max-width: 767px) {
+  .status-indicator {
+    font-size: 12px;
+    padding: 6px 12px;
+    min-width: 70px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .status-indicator {
+    font-size: 13px;
+    padding: 6px 14px;
+    min-width: 75px;
+  }
 }
 
 .status-pending {
@@ -152,14 +269,44 @@
   font-weight: 500;
 }
 
-/* Machine-specific elements */
+/* ============================================ */
+/* MACHINE-SPECIFIC RESPONSIVE ELEMENTS */
+/* ============================================ */
+
 .machine-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 24px;
   border-radius: 16px;
   margin-bottom: 20px;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Responsive machine card padding */
+@media (max-width: 767px) {
+  .machine-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .machine-card {
+    padding: 20px;
+    border-radius: 14px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .machine-card {
+    padding: 24px;
+    border-radius: 16px;
+  }
+
+  .machine-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+  }
 }
 
 .machine-status {
@@ -197,50 +344,66 @@
   }
 }
 
-/* Job queue specific styles */
-.job-queue-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: white;
-  border-radius: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+/* ============================================ */
+/* JOB QUEUE RESPONSIVE LAYOUTS */
+/* ============================================ */
+
+.job-queue-container {
+  /* Responsive max-width adjustments */
+}
+
+@media (max-width: 767px) {
+  .job-queue-container {
+    padding: 10px !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .job-queue-container {
+    padding: 15px !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .job-queue-container {
+    max-width: 1600px !important;
+  }
 }
 
 .job-queue-filters {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .job-card {
   background: white;
-  border-radius: 16px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 20px;
   margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
-  border-left: 4px solid transparent;
+  cursor: pointer;
 }
 
 .job-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
 .job-card.priority-high {
-  border-left-color: #ff4d4f;
+  border-left: 4px solid #ff4d4f;
 }
 
 .job-card.priority-medium {
-  border-left-color: #fa8c16;
+  border-left: 4px solid #fa8c16;
 }
 
 .job-card.priority-low {
-  border-left-color: #52c41a;
+  border-left: 4px solid #52c41a;
 }
 
 .job-card-header {
@@ -248,6 +411,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .job-card-title {
@@ -255,92 +420,151 @@
   font-weight: 600;
   color: #262626;
   margin: 0;
+  flex: 1;
+  min-width: 200px;
 }
 
 .job-card-id {
   font-size: 14px;
   color: #8c8c8c;
-  margin-top: 4px;
+  font-weight: 500;
 }
 
 .job-card-details {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
 .job-card-detail {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .job-card-detail-label {
-  font-size: 12px;
-  color: #8c8c8c;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 14px;
+  color: #595959;
+  font-weight: 500;
+  flex: 1;
 }
 
 .job-card-detail-value {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
   color: #262626;
+  font-weight: 600;
+  text-align: right;
 }
 
 .job-card-actions {
   display: flex;
   gap: 12px;
-  margin-top: 20px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-/* Responsive tablet layouts */
-@media (min-width: 768px) and (orientation: landscape) {
+/* ============================================ */
+/* RESPONSIVE GRID LAYOUTS */
+/* ============================================ */
+
+/* Mobile - Single column */
+@media (max-width: 767px) {
   .job-queue-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .job-card-details {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-}
-
-@media (max-width: 767px) or (orientation: portrait) {
   .job-queue-header {
     flex-direction: column;
-    align-items: stretch;
     gap: 16px;
   }
 
   .job-queue-filters {
-    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .job-card-details {
     grid-template-columns: 1fr;
-    gap: 12px;
   }
 
   .job-card-actions {
-    flex-direction: column;
+    justify-content: stretch;
+  }
+
+  .job-card-actions button {
+    flex: 1;
   }
 }
 
-/* PWA specific styles */
+/* Tablet Portrait - 1-2 columns */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .job-queue-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .job-card-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Tablet Landscape - 2 columns */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .job-queue-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .job-card-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Laptop - 2-3 columns */
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .job-queue-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .job-card-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Large Desktop - 3-4 columns */
+@media (min-width: 1401px) {
+  .job-queue-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .job-card-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ============================================ */
+/* PWA AND LOADING COMPONENTS */
+/* ============================================ */
+
 .pwa-prompt {
   position: fixed;
   bottom: 20px;
   left: 20px;
   right: 20px;
   background: white;
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  padding: 20px;
   animation: slideUp 0.3s ease;
+  z-index: 1000;
 }
 
 @keyframes slideUp {
@@ -354,14 +578,13 @@
   }
 }
 
-/* Loading states */
 .loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -381,22 +604,26 @@
   }
 }
 
-/* Accessibility improvements for tablets */
+/* ============================================ */
+/* ACCESSIBILITY AND PERFORMANCE */
+/* ============================================ */
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* High DPI display optimizations */
+/* High DPI displays */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .tablet-card {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   }
 
   .job-card {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   }
 }

@@ -1,12 +1,52 @@
 import { create } from "zustand";
 import { apiClient } from "../services/apiClient";
-import { socketService } from "../services/socketService";
+import socketService from "../services/socketService";
 
 const useStockStore = create((set, get) => ({
   // State
   stockItems: [],
-  categories: [],
-  locations: [],
+  categories: [
+    "Electronics",
+    "Tools",
+    "Raw Materials",
+    "Finished Goods",
+    "Spare Parts",
+    "Consumables",
+    "Chemicals",
+    "Safety Equipment",
+  ],
+  locations: [
+    "A1-01",
+    "A1-02",
+    "A1-03",
+    "A2-01",
+    "A2-02",
+    "B1-01",
+    "B1-02",
+    "B2-01",
+    "B2-02",
+    "QC-01",
+    "QC-02",
+    "REC-01",
+    "SHIP-01",
+  ],
+  suppliers: [
+    "Acme Corp",
+    "Tech Solutions Inc",
+    "Global Parts Ltd",
+    "Quality Materials Co",
+    "Industrial Supply Pro",
+  ],
+  units: [
+    "pieces",
+    "kg",
+    "meters",
+    "liters",
+    "boxes",
+    "pallets",
+    "rolls",
+    "sheets",
+  ],
   isLoading: false,
   error: null,
   connectionStatus: "disconnected",
@@ -114,32 +154,65 @@ const useStockStore = create((set, get) => ({
   },
 
   // Add new stock item
-  addStockItem: async (stockItem) => {
-    const { setLoading, setError, fetchStockItems } = get();
+  addStockItem: async (itemData) => {
+    set({ isLoading: true, error: null });
 
     try {
-      setLoading(true);
-      setError(null);
+      // Simulate API call for demo purposes
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const response = await apiClient.post("/api/inventory", stockItem);
+      const newItem = {
+        id: Date.now().toString(),
+        itemName: itemData.itemName,
+        category: itemData.category,
+        quantity: parseInt(itemData.quantity) || 0,
+        unit: itemData.unit,
+        location: itemData.location,
+        supplier: itemData.supplier,
+        batchNumber: itemData.batchNumber,
+        expiryDate: itemData.expiryDate,
+        costPrice: parseFloat(itemData.costPrice) || 0,
+        sellingPrice: parseFloat(itemData.sellingPrice) || 0,
+        minStockLevel: parseInt(itemData.minStockLevel) || 0,
+        description: itemData.description,
+        barcode: itemData.barcode,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: "current-user", // In real app, get from auth
+        photos: itemData.photos || [],
+        status: "active",
+      };
 
-      // Add to local state immediately for better UX
+      // Determine stock status
+      if (newItem.quantity === 0) {
+        newItem.stockStatus = "out-of-stock";
+      } else if (newItem.quantity <= newItem.minStockLevel) {
+        newItem.stockStatus = "low-stock";
+      } else {
+        newItem.stockStatus = "in-stock";
+      }
+
       set((state) => ({
-        stockItems: [response.data, ...state.stockItems],
+        stockItems: [newItem, ...state.stockItems],
+        isLoading: false,
+        error: null,
+        lastSync: new Date().toISOString(),
       }));
 
+      // Update statistics
       get().calculateStats();
 
       // Emit socket event for real-time updates
-      socketService.emit("stockAdded", response.data);
+      socketService.emit("stockAdded", newItem);
 
-      return response.data;
+      return { success: true, item: newItem };
     } catch (error) {
       console.error("Error adding stock item:", error);
-      setError(error.response?.data?.message || "Failed to add stock item");
-      throw error;
-    } finally {
-      setLoading(false);
+      set({
+        isLoading: false,
+        error: error.message || "Failed to add stock item",
+      });
+      return { success: false, error: error.message };
     }
   },
 
@@ -407,8 +480,48 @@ const useStockStore = create((set, get) => ({
   reset: () => {
     set({
       stockItems: [],
-      categories: [],
-      locations: [],
+      categories: [
+        "Electronics",
+        "Tools",
+        "Raw Materials",
+        "Finished Goods",
+        "Spare Parts",
+        "Consumables",
+        "Chemicals",
+        "Safety Equipment",
+      ],
+      locations: [
+        "A1-01",
+        "A1-02",
+        "A1-03",
+        "A2-01",
+        "A2-02",
+        "B1-01",
+        "B1-02",
+        "B2-01",
+        "B2-02",
+        "QC-01",
+        "QC-02",
+        "REC-01",
+        "SHIP-01",
+      ],
+      suppliers: [
+        "Acme Corp",
+        "Tech Solutions Inc",
+        "Global Parts Ltd",
+        "Quality Materials Co",
+        "Industrial Supply Pro",
+      ],
+      units: [
+        "pieces",
+        "kg",
+        "meters",
+        "liters",
+        "boxes",
+        "pallets",
+        "rolls",
+        "sheets",
+      ],
       isLoading: false,
       error: null,
       connectionStatus: "disconnected",
